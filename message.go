@@ -13,21 +13,6 @@ import (
 	"strings"
 )
 
-func (h *Headers) String() string {
-	var b bytes.Buffer
-
-	for k, v := range h.values {
-		b.WriteString(k + ": " + v)
-		b.WriteString("\n")
-	}
-
-	if b.Len() == 0 {
-		b.WriteString("\n")
-	}
-
-	return b.String()
-}
-
 type Message struct {
 	Method        string
 	BodyHash      string
@@ -106,4 +91,19 @@ func NewHeaders() *Headers {
 func (h *Headers) Set(header, value string) *Headers {
 	h.values[strings.ToLower(header)] = value
 	return h
+}
+
+func (h *Headers) String() string {
+	var b bytes.Buffer
+
+	for k, v := range h.values {
+		b.WriteString(k + ": " + v)
+		b.WriteString("\n")
+	}
+
+	if b.Len() == 0 {
+		b.WriteString("\n")
+	}
+
+	return b.String()
 }

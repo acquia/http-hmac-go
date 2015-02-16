@@ -41,7 +41,7 @@ func NewMessage(r *http.Request, headers ...[]string) *Message {
 	}
 }
 
-func (m *Message) Write() []byte {
+func (m *Message) Bytes() []byte {
 	var b bytes.Buffer
 
 	b.WriteString(strings.ToUpper(m.Method))
@@ -56,7 +56,7 @@ func (m *Message) Write() []byte {
 	b.WriteString(m.Date)
 	b.WriteString("\n")
 
-	b.WriteString(m.CustomHeaders.String())
+	b.Write(m.CustomHeaders.Bytes())
 
 	b.WriteString(m.Resource.RequestURI())
 
@@ -65,7 +65,7 @@ func (m *Message) Write() []byte {
 
 func (m *Message) Sign(digest func() hash.Hash, secret string) string {
 	h := hmac.New(digest, []byte(secret))
-	h.Write(m.Write())
+	h.Write(m.Bytes())
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
@@ -75,6 +75,7 @@ func HashBody(body io.ReadCloser) string {
 
 	h := md5.New()
 	h.Write(b.Bytes())
+
 	return hex.EncodeToString(h.Sum(nil))
 }
 
@@ -93,7 +94,7 @@ func (h *Headers) Set(header, value string) *Headers {
 	return h
 }
 
-func (h *Headers) String() string {
+func (h *Headers) Bytes() []byte {
 	var b bytes.Buffer
 
 	for k, v := range h.values {
@@ -105,5 +106,5 @@ func (h *Headers) String() string {
 		b.WriteString("\n")
 	}
 
-	return b.String()
+	return b.Bytes()
 }

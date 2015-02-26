@@ -8,7 +8,6 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
 	"hash"
 	"io"
 	"net/http"
@@ -84,17 +83,6 @@ func (m *Message) Bytes() []byte {
 	b.WriteString(m.Resource.RequestURI())
 
 	return b.Bytes()
-}
-
-func XorBytes(a []byte, b []byte) ([]byte, error) {
-	if len(a) != len(b) {
-		return []byte{}, errors.New("Not matching length.")
-	}
-	ret := []byte{}
-	for i := 0; i < len(a); i++ {
-		ret = append(ret, a[i] ^ b[i])
-	}
-	return ret, nil
 }
 
 // Sign returns the HMAC signature.

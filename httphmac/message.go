@@ -8,6 +8,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"hash"
 	"io"
 	"net/http"
@@ -85,17 +86,32 @@ func (m *Message) Bytes() []byte {
 	return b.Bytes()
 }
 
+func XorBytes(a []byte, b []byte) ([]byte, error) {
+	if len(a) != len(b) {
+		return []byte{}, errors.New("Not matching length.")
+	}
+	ret := []byte{}
+	for i := 0; i < len(a); i++ {
+		ret = append(ret, a[i] ^ b[i])
+	}
+	return ret, nil
+}
+
 // Sign returns the HMAC signature.
 func (m *Message) Sign(digest func() hash.Hash, secret string) string {
 	h := hmac.New(digest, []byte(secret))
-	h.Write(m.Bytes())
-	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+	b := m.Bytes()
+	h.Write(b)
+	hsm := h.Sum(nil)
+	return base64.StdEncoding.EncodeToString(hsm)
 }
 
 // HashBody returns an MD5 hash of the request body, given an HTTP request.
 func HashBody(body io.ReadCloser) string {
 	b := new(bytes.Buffer)
-	b.ReadFrom(body)
+	if body != nil {
+		b.ReadFrom(body)
+	}
 
 	h := md5.New()
 	h.Write(b.Bytes())

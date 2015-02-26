@@ -62,7 +62,7 @@ func BenchmarkSignSha1LongText(b *testing.B) {
 	}
 }
 
-func BenchmarkSignSha256LongTextMD5(b *testing.B) {
+func BenchmarkSignSha256LongText(b *testing.B) {
 	t := NewTestLongText()
 	m := NewTestMessage()
 	m.BodyHash = t
@@ -83,7 +83,7 @@ func BenchmarkSignSha1LongTextMD5(b *testing.B) {
 	}
 }
 
-func BenchmarkSignSha256LongText(b *testing.B) {
+func BenchmarkSignSha256LongTextMD5(b *testing.B) {
 	t := NewTestLongText()
 	m := NewTestMessage()
 	m.BodyHash = t
@@ -94,6 +94,8 @@ func BenchmarkSignSha256LongText(b *testing.B) {
 		m.Sign(d, "secret-key")
 	}
 }
+
+
 
 func BenchmarkSignSha1(b *testing.B) {
 	m := NewTestMessage()

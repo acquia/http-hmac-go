@@ -9,11 +9,23 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"hash"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 )
+
+type SubstituteReader struct {
+	reader *bytes.Reader
+}
+
+func (s SubstituteReader) Read(p []byte) (n int, err error) {
+	return s.reader.Read(p)
+}
+
+func (s SubstituteReader) Close() error {
+	return nil
+}
 
 // A Message represents the parts of the HTTP request used in the generation of
 // the HMAC signature.
@@ -51,9 +63,15 @@ func NewMessage(r *http.Request, headers ...[]string) *Message {
 		}
 	}
 
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil
+	}
+	r.Body = SubstituteReader{bytes.NewReader(body)}
+
 	return &Message{
 		r.Method,
-		HashBody(r.Body),
+		HashData(body),
 		r.Header.Get("Content-Type"),
 		r.Header.Get("Date"),
 		h,
@@ -94,15 +112,10 @@ func (m *Message) Sign(digest func() hash.Hash, secret string) string {
 	return base64.StdEncoding.EncodeToString(hsm)
 }
 
-// HashBody returns an MD5 hash of the request body, given an HTTP request.
-func HashBody(body io.ReadCloser) string {
-	b := new(bytes.Buffer)
-	if body != nil {
-		b.ReadFrom(body)
-	}
-
+// HashData returns an MD5 hash of the request body, given the body itself.
+func HashData(body []byte) string {
 	h := md5.New()
-	h.Write(b.Bytes())
+	h.Write(body)
 
 	return hex.EncodeToString(h.Sum(nil))
 }

@@ -95,8 +95,6 @@ func BenchmarkSignSha256LongTextMD5(b *testing.B) {
 	}
 }
 
-
-
 func BenchmarkSignSha1(b *testing.B) {
 	m := NewTestMessage()
 	d := sha1.New

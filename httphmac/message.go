@@ -15,18 +15,6 @@ import (
 	"strings"
 )
 
-type SubstituteReader struct {
-	reader *bytes.Reader
-}
-
-func (s SubstituteReader) Read(p []byte) (n int, err error) {
-	return s.reader.Read(p)
-}
-
-func (s SubstituteReader) Close() error {
-	return nil
-}
-
 // A Message represents the parts of the HTTP request used in the generation of
 // the HMAC signature.
 type Message struct {
@@ -67,7 +55,8 @@ func NewMessage(r *http.Request, headers ...[]string) *Message {
 	if err != nil {
 		return nil
 	}
-	r.Body = SubstituteReader{bytes.NewReader(body)}
+	r.Body.Close()
+	r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 	return &Message{
 		r.Method,

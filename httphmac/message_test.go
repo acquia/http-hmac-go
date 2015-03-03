@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -35,6 +36,13 @@ func NewTestRequest() *http.Request {
 	return req
 }
 
+func NewTestPostRequest() *http.Request {
+	data := "{\n\"resource\": \"http://localhost:4999/common-data-format-entities.json\"\n}\n"
+	req, _ := http.NewRequest("post", "http://localhost:5000/entities", strings.NewReader(data))
+	req.Header.Add("Content-Type", "application/json")
+	return req
+}
+
 func TestSign(t *testing.T) {
 	m := NewTestMessage()
 	s := m.Sign(sha1.New, "secret-key")
@@ -49,6 +57,15 @@ func TestSignRequest(t *testing.T) {
 	s := m.Sign(sha1.New, "secret-key")
 	if s != "7Tq3+JP3lAu4FoJz81XEx5+qfOc=" {
 		t.Fail()
+	}
+}
+
+func TestSignPostRequest(t *testing.T) {
+	req := NewTestPostRequest()
+	m := NewMessage(req)
+	s := m.Sign(sha1.New, "secret-key")
+	if s != "WZ/Mg5mKEH95hd+P7giJSeiC/f0=" {
+		t.Errorf("Expected: WZ/Mg5mKEH95hd+P7giJSeiC/f0=. Got: %s", s)
 	}
 }
 

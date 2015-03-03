@@ -53,12 +53,14 @@ func NewMessage(r *http.Request, headers ...[]string) *Message {
 
 	var body []byte = []byte{}
 	if r.Body != nil {
-		body, err := ioutil.ReadAll(r.Body)
+		var err error
+		body, err = ioutil.ReadAll(r.Body)
 		if err != nil {
 			return nil
 		}
 		r.Body.Close()
-		r.Body = ioutil.NopCloser(bytes.NewReader(body))
+		copy := body[:]
+		r.Body = ioutil.NopCloser(bytes.NewReader(copy))
 	}
 
 	return &Message{

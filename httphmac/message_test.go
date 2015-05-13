@@ -27,6 +27,10 @@ func NewTestMessage() *Message {
 	}
 }
 
+func NewRawTestMessage() *Message {
+	return NewRawMessage("post", "test content", "text/plain", "Fri, 19 Mar 1982 00:00:04 GMT", map[string]string{"Custom1":"Value1"}, "/resource/1?key=value")
+}
+
 func NewTestLongText() string {
 	return "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque scelerisque convallis dapibus. Phasellus ac rhoncus felis, sit amet lacinia justo. Cras at urna ut augue mollis porttitor. Duis ut vehicula orci. Nulla ex justo, lobortis at neque et, dapibus bibendum nunc. Vivamus porttitor convallis nulla, in sodales augue ullamcorper vel. Nunc ultricies est eu tincidunt luctus. Maecenas ac libero luctus, faucibus quam vitae, placerat purus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aenean bibendum dui a nunc scelerisque ornare. Sed rhoncus mi finibus arcu dapibus, eu mattis ex fringilla. Cras molestie aliquam mi a tincidunt. Integer commodo dictum consectetur. Suspendisse enim velit, porta quis semper ac, condimentum sed ligula. Nulla scelerisque consequat metus faucibus tempus. Cras eros est, bibendum et felis sed, placerat facilisis arcu. Phasellus elit dolor, dictum nec ex sit amet, hendrerit maximus turpis. Quisque eget erat non nunc bibendum ultricies. Phasellus ante ipsum, lobortis at dictum sed, tincidunt nec lorem. Donec venenatis est vitae dui euismod, sed iaculis erat ultrices. Nullam eget metus placerat metus dignissim sodales. Quisque commodo non sem vitae tristique. Integer blandit nunc massa, non cursus massa aliquet sed. Suspendisse urna ipsum, tempus at dapibus vel, venenatis id risus. Etiam commodo fringilla mi, vel molestie augue. Phasellus pretium mollis purus. Duis sollicitudin ac elit id pulvinar. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Morbi imperdiet tincidunt tortor, at ullamcorper tellus sodales ut. Nulla facilisi. Proin ac fringilla arcu. Suspendisse cursus diam nunc, ac malesuada lectus finibus quis. Suspendisse ut ex diam. In hac habitasse platea dictumst. Praesent vitae enim a ante pharetra varius ac ut mauris. Nulla odio nulla, scelerisque nec sollicitudin id, porta ut felis. In auctor imperdiet felis sed finibus. Ut nibh quam, iaculis finibus scelerisque sed, vestibulum ut justo. Fusce lacinia, velit a feugiat gravida, sapien leo tempus nibh, quis ultrices sem arcu convallis arcu. Cras eu odio elit. Sed in porta felis. Sed non lectus et libero aliquet imperdiet eu ut tortor."
 }
@@ -45,6 +49,14 @@ func NewTestPostRequest() *http.Request {
 
 func TestSign(t *testing.T) {
 	m := NewTestMessage()
+	s := m.Sign(sha1.New, "secret-key")
+	if s != "QRMtvnGmlP1YbaTwpWyB/6A8dRU=" {
+		t.Fail()
+	}
+}
+
+func TestRawSign(t *testing.T) {
+	m := NewRawTestMessage()
 	s := m.Sign(sha1.New, "secret-key")
 	if s != "QRMtvnGmlP1YbaTwpWyB/6A8dRU=" {
 		t.Fail()

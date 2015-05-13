@@ -73,6 +73,23 @@ func NewMessage(r *http.Request, headers ...[]string) *Message {
 	}
 }
 
+func NewRawMessage(method string, body string, contentType string, date string, customHeaders map[string]string, path string) *Message {
+	h := NewHeaders()
+	for k, v := range customHeaders {
+		h.Set(k, v)
+	}
+	uri, _ := url.Parse(path)
+
+	return &Message {
+		method,
+		HashData([]byte(body)),
+		contentType,
+		date,
+		h,
+		uri,
+	}
+}
+
 // Bytes returns a slice of the contents of the Message used in the HMAC
 // signature generation.
 func (m *Message) Bytes() []byte {

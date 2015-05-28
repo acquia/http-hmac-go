@@ -38,6 +38,9 @@ type Message struct {
 	// Resource specifies the URI being requested (for server requests) or the URL
 	// to access (for client requests).
 	Resource *url.URL
+
+	// Does this need a trailing slash?
+	trailingSlash bool
 }
 
 // NewMessage returns a new Message given a HTTP request, and an array of
@@ -70,7 +73,14 @@ func NewMessage(r *http.Request, headers ...[]string) *Message {
 		r.Header.Get("Date"),
 		h,
 		r.URL,
+		true,
 	}
+}
+
+func removeTrailingSlash(s string) string {
+	p := strings.Split(s, "?")
+	p[0] = strings.TrimRight(p[0], "/")
+	return strings.Join(p, "?")
 }
 
 func NewRawMessage(method string, body string, contentType string, date string, customHeaders map[string]string, path string) *Message {
@@ -79,6 +89,7 @@ func NewRawMessage(method string, body string, contentType string, date string, 
 		h.Set(k, v)
 	}
 	uri, _ := url.Parse(path)
+	uri.Path = strings.TrimRight(uri.Path, "/")
 
 	return &Message {
 		method,
@@ -87,6 +98,7 @@ func NewRawMessage(method string, body string, contentType string, date string, 
 		date,
 		h,
 		uri,
+		false,
 	}
 }
 
@@ -109,7 +121,11 @@ func (m *Message) Bytes() []byte {
 
 	b.Write(m.CustomHeaders.Bytes())
 
-	b.WriteString(m.Resource.RequestURI())
+	if (m.trailingSlash) {
+		b.WriteString(m.Resource.RequestURI())
+	} else {
+		b.WriteString(removeTrailingSlash(m.Resource.RequestURI()))
+	}
 
 	return b.Bytes()
 }

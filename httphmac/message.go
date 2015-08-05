@@ -45,11 +45,11 @@ type Message struct {
 
 // NewMessage returns a new Message given a HTTP request, and an array of
 // custom headers used in the HMAC signature generation.
-func NewMessage(r *http.Request, headers ...string) *Message {
+func NewMessage(r *http.Request, headers ...[]string) *Message {
 
 	h := NewHeaders()
 	if len(headers) > 0 {
-		for _, header := range headers {
+		for _, header := range headers[0] {
 			h.Set(header, r.Header.Get(header))
 		}
 	}
@@ -91,7 +91,7 @@ func NewRawMessage(method string, body string, contentType string, date string, 
 	uri, _ := url.Parse(path)
 	uri.Path = strings.TrimRight(uri.Path, "/")
 
-	return &Message{
+	return &Message {
 		method,
 		HashData([]byte(body)),
 		contentType,
@@ -121,7 +121,7 @@ func (m *Message) Bytes() []byte {
 
 	b.Write(m.CustomHeaders.Bytes())
 
-	if m.trailingSlash {
+	if (m.trailingSlash) {
 		b.WriteString(m.Resource.RequestURI())
 	} else {
 		b.WriteString(removeTrailingSlash(m.Resource.RequestURI()))

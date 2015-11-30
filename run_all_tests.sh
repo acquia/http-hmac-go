@@ -28,4 +28,4 @@ if [ -n "$(find "$cdir" -maxdepth 1 -name '*_test.go' -print -quit)" ]; then
 	exit $ec
 fi
 
-exit 0
+exit $ec

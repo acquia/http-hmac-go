@@ -20,6 +20,7 @@ const (
 	ErrorTypeInvalidAuthHeader
 	ErrorTypeOutdatedKeypair
 	ErrorTypeInternalError
+	ErrorTypeSignatureMismatch
 )
 
 func (a *AuthenticationError) Error() string {

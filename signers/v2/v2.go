@@ -9,6 +9,7 @@ import (
 	"github.com/acquia/http-hmac-go/signers"
 	"hash"
 	"net/http"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -19,6 +20,10 @@ type V2Signer struct {
 	*signers.Digester
 	*signers.Identifiable
 	respSigner *V2ResponseSigner
+}
+
+func EscapeProper(s string) string {
+	return strings.Replace(url.QueryEscape(s), "+", "%20", -1)
 }
 
 func ParseAuthHeaders(req *http.Request) map[string]string {
@@ -38,7 +43,12 @@ func ParseAuthHeaders(req *http.Request) map[string]string {
 		}
 		vardef = strings.TrimRight(vardef, " \t\n")
 		parts := strings.SplitN(vardef, "=", 2)
-		ret[strings.Trim(parts[0], " \t\n")] = strings.Trim(parts[1], " \t\n\"")
+		k := strings.Trim(parts[0], " \t\n")
+		qu := strings.Trim(parts[1], " \t\n\"")
+		if k != "signature" { // hack
+			qu, _ = url.QueryUnescape(qu)
+		}
+		ret[k] = qu
 	}
 	return ret
 }
@@ -64,7 +74,7 @@ func NewV2Signer(digest func() hash.Hash) (*V2Signer, *signers.AuthenticationErr
 }
 
 func (v *V2Signer) stringAuthHeaders(authHeaders map[string]string) string {
-	return fmt.Sprintf("id=%s&nonce=%s&realm=%s&version=2.0", authHeaders["id"], authHeaders["nonce"], authHeaders["realm"])
+	return fmt.Sprintf("id=%s&nonce=%s&realm=%s&version=2.0", EscapeProper(authHeaders["id"]), EscapeProper(authHeaders["nonce"]), EscapeProper(authHeaders["realm"]))
 }
 
 func (v *V2Signer) HashBody(req *http.Request) (string, *signers.AuthenticationError) {
@@ -192,6 +202,70 @@ func (v *V2Signer) Sign(req *http.Request, authHeaders map[string]string, secret
 	h.Write(b)
 	hsm := h.Sum(nil)
 	return base64.StdEncoding.EncodeToString(hsm), nil
+}
+
+func (v *V2Signer) Check(req *http.Request, secret string) *signers.AuthenticationError {
+	authHeaders := ParseAuthHeaders(req)
+	sig, err := v.Sign(req, authHeaders, secret)
+	if err != nil {
+		return err
+	}
+	got := authHeaders["signature"]
+	if got == "" {
+		return signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Signature missing from authorization header.")
+	}
+	if sig != got {
+		return signers.Errorf(403, signers.ErrorTypeSignatureMismatch, "Signature does not match expected signature.")
+	}
+	return nil
+}
+
+func (v *V2Signer) SignDirect(req *http.Request, authHeaders map[string]string, secret string) *signers.AuthenticationError {
+	sig, err := v.Sign(req, authHeaders, secret)
+	if err != nil {
+		return err
+	}
+	ah, err := v.GenerateAuthorization(req, authHeaders, sig)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", ah)
+	return nil
+}
+
+func (v *V2Signer) GenerateAuthorization(req *http.Request, authHeaders map[string]string, signature string) (string, *signers.AuthenticationError) {
+	if _, ok := authHeaders["id"]; !ok {
+		return "", signers.Errorf(500, signers.ErrorTypeInternalError, "Missing access key for signature.")
+	}
+	if _, ok := authHeaders["nonce"]; !ok {
+		return "", signers.Errorf(500, signers.ErrorTypeInternalError, "Missing nonce for signature.")
+	}
+	if _, ok := authHeaders["realm"]; !ok {
+		return "", signers.Errorf(500, signers.ErrorTypeInternalError, "Missing realm for signature.")
+	}
+	if _, ok := authHeaders["version"]; !ok {
+		authHeaders["version"] = "2.0"
+	}
+	authHeaders["signature"] = signature
+	args := ""
+	sorted := []string{}
+	for k, _ := range authHeaders {
+		sorted = append(sorted, k)
+	}
+	sort.Strings(sorted)
+	for _, k := range sorted {
+		if args != "" {
+			args += ","
+		}
+		v := authHeaders[k]
+		if k != "signature" { // hack
+			v = EscapeProper(v)
+		}
+		args += fmt.Sprintf("%s=\"%s\"", k, v)
+	}
+
+	return fmt.Sprintf("acquia-http-hmac %s", args), nil
 }
 
 func (v *V2Signer) GetIdentificationRegex() *regexp.Regexp {

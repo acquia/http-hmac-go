@@ -17,15 +17,16 @@ type ResponseFixture struct {
 }
 
 type TestFixture struct {
-	TestName    string
-	Digest      func() hash.Hash
-	Expected    map[string]string
-	Request     *http.Request
-	AuthHeaders map[string]string
-	SecretKey   string
-	Response    *ResponseFixture
-	SystemTime  int64
-	ErrorType   map[string]ErrorType
+	TestName       string
+	Digest         func() hash.Hash
+	Expected       map[string]string
+	Request        *http.Request
+	AuthHeaders    map[string]string
+	SecretKey      string
+	Response       *ResponseFixture
+	SystemTime     int64
+	ErrorType      map[string]ErrorType
+	ExpectedHeader map[string]string
 }
 
 type CompatibilityTestFixture struct {
@@ -91,14 +92,20 @@ var Fixtures []*TestFixture = []*TestFixture{
 		},
 		Request: &http.Request{
 			Method: "GET",
-			URL: SilentURLParse("http://example.com/resource/1?key=value"),
+			URL:    SilentURLParse("http://example.com/resource/1?key=value"),
+			Header: MakeHeader(map[string][]string{}),
 		},
-		AuthHeaders: map[string]string{}
+		AuthHeaders: map[string]string{
+			"id": "efdde334-fe7b-11e4-a322-1697f925ec7b",
+		},
 		SecretKey: "secret-key",
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeInvalidAuthHeader,
 		},
-	}
+		ExpectedHeader: map[string]string{
+			"v1": "Acquia efdde334-fe7b-11e4-a322-1697f925ec7b:7Tq3+JP3lAu4FoJz81XEx5+qfOc=",
+		},
+	},
 	&TestFixture{
 		TestName:   "v1 - valid request without additional signed headers - invalid header in v2",
 		SystemTime: 1432075982,
@@ -115,10 +122,15 @@ var Fixtures []*TestFixture = []*TestFixture{
 			}),
 			URL: SilentURLParse("http://example.com/resource/1?key=value"),
 		},
-		AuthHeaders: map[string]string{},
-		SecretKey:   "secret-key",
+		AuthHeaders: map[string]string{
+			"id": "efdde334-fe7b-11e4-a322-1697f925ec7b",
+		},
+		SecretKey: "secret-key",
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeInvalidAuthHeader,
+		},
+		ExpectedHeader: map[string]string{
+			"v1": "Acquia efdde334-fe7b-11e4-a322-1697f925ec7b:6DQcBYwaKdhRm/eNBKIN2jM8HF8=",
 		},
 	},
 	&TestFixture{
@@ -140,11 +152,13 @@ var Fixtures []*TestFixture = []*TestFixture{
 		},
 		AuthHeaders: map[string]string{
 			"headers": "Custom1",
+			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 		},
 		SecretKey: "secret-key",
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeInvalidAuthHeader,
 		},
+		ExpectedHeader: map[string]string{},
 	},
 	&TestFixture{
 		TestName:   "v2 - valid GET request",
@@ -162,7 +176,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task-status/133?limit=10"),
 		},
 		AuthHeaders: map[string]string{
-			"realm":   "Pipet%20service",
+			"realm":   "Pipet service",
 			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 			"nonce":   "d1954337-5319-4821-8427-115542e08d10",
 			"version": "2.0",
@@ -175,6 +189,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 			Response: PrepareResponseWriter(`{"id": 133, "status": "done"}`),
 		},
 		ErrorType: map[string]ErrorType{},
+		ExpectedHeader: map[string]string{
+			"v2": `acquia-http-hmac id="efdde334-fe7b-11e4-a322-1697f925ec7b",nonce="d1954337-5319-4821-8427-115542e08d10",realm="Pipet%20service",signature="MRlPr/Z1WQY2sMthcaEqETRMw4gPYXlPcTpaLWS2gcc=",version="2.0"`,
+		},
 	},
 	&TestFixture{
 		TestName:   "v2 - valid POST request",
@@ -195,13 +212,16 @@ var Fixtures []*TestFixture = []*TestFixture{
 			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
-			"realm":   "Pipet%20service",
+			"realm":   "Pipet service",
 			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 			"nonce":   "d1954337-5319-4821-8427-115542e08d10",
 			"version": "2.0",
 		},
 		SecretKey: "W5PeGMxSItNerkNFqQMfYiJvH14WzVJMy54CPoTAYoI=",
 		ErrorType: map[string]ErrorType{},
+		ExpectedHeader: map[string]string{
+			"v2": `acquia-http-hmac id="efdde334-fe7b-11e4-a322-1697f925ec7b",nonce="d1954337-5319-4821-8427-115542e08d10",realm="Pipet%20service",signature="XDBaXgWFCY3aAgQvXyGXMbw9Vds2WPKJe2yP+1eXQgM=",version="2.0"`,
+		},
 	},
 	&TestFixture{
 		TestName:   "v2 - request with missing timestamp",
@@ -219,7 +239,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
-			"realm":   "Pipet%20service",
+			"realm":   "Pipet service",
 			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 			"nonce":   "d1954337-5319-4821-8427-115542e08d10",
 			"version": "2.0",
@@ -228,6 +248,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeMissingRequiredHeader,
 		},
+		ExpectedHeader: map[string]string{},
 	},
 	&TestFixture{
 		TestName:   "v2 - request with missing content SHA",
@@ -245,7 +266,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
-			"realm":   "Pipet%20service",
+			"realm":   "Pipet service",
 			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 			"nonce":   "d1954337-5319-4821-8427-115542e08d10",
 			"version": "2.0",
@@ -254,6 +275,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeMissingRequiredHeader,
 		},
+		ExpectedHeader: map[string]string{},
 	},
 	&TestFixture{
 		TestName:   "v2 - request with mismatching content SHA",
@@ -272,7 +294,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
-			"realm":   "Pipet%20service",
+			"realm":   "Pipet service",
 			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 			"nonce":   "d1954337-5319-4821-8427-115542e08d10",
 			"version": "2.0",
@@ -281,6 +303,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeInvalidRequiredHeader,
 		},
+		ExpectedHeader: map[string]string{},
 	},
 	&TestFixture{
 		TestName:   "v2 - request with timestamp in the past",
@@ -299,7 +322,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
-			"realm":   "Pipet%20service",
+			"realm":   "Pipet service",
 			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 			"nonce":   "d1954337-5319-4821-8427-115542e08d10",
 			"version": "2.0",
@@ -308,6 +331,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeTimestampRangeError,
 		},
+		ExpectedHeader: map[string]string{},
 	},
 	&TestFixture{
 		TestName:   "v2 - request with timestamp in the future",
@@ -326,7 +350,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
-			"realm":   "Pipet%20service",
+			"realm":   "Pipet service",
 			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 			"nonce":   "d1954337-5319-4821-8427-115542e08d10",
 			"version": "2.0",
@@ -335,6 +359,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeTimestampRangeError,
 		},
+		ExpectedHeader: map[string]string{},
 	},
 	&TestFixture{
 		TestName:   "v2 - outdated keypair (non-b64 encoded secret key)",
@@ -353,7 +378,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
-			"realm":   "Pipet%20service",
+			"realm":   "Pipet service",
 			"id":      "efdde334-fe7b-11e4-a322-1697f925ec7b",
 			"nonce":   "d1954337-5319-4821-8427-115542e08d10",
 			"version": "2.0",
@@ -362,6 +387,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 		ErrorType: map[string]ErrorType{
 			"v2": ErrorTypeOutdatedKeypair,
 		},
+		ExpectedHeader: map[string]string{},
 	},
 }
 

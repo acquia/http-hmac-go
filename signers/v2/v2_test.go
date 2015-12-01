@@ -82,10 +82,69 @@ func TestSign(t *testing.T) {
 					} else {
 						LogPass(t, "Signature matches.")
 						passed++
+						if eh, ok := v.ExpectedHeader[testVersion]; ok {
+							evaluated++
+							LogTest(t, "fixture ", k, " Check() test")
+							v.Request.Header.Set("Authorization", eh)
+							if err := signer.Check(v.Request, v.SecretKey); err == nil {
+								LogPass(t, "Signature check for Check passed.")
+								passed++
+							} else {
+								LogFail(t, "Signature check for Check failed with error type ", signers.GetErrorTypeText(signers.GetErrorType(err)))
+								t.Log("Error message: ", err.Error())
+								t.Log("Header being validated was ", eh)
+								t.Fail()
+								failed++
+							}
+
+							evaluated++
+							LogTest(t, "fixture ", k, " SignDirect() test")
+							err := signer.SignDirect(v.Request, v.AuthHeaders, v.SecretKey)
+							if err != nil {
+								LogFail(t, "Authorization header check for SignDirect failed with error type ", signers.GetErrorTypeText(signers.GetErrorType(err)))
+								t.Log("Error message: ", err.Error())
+								failed++
+							} else if v.Request.Header.Get("Authorization") == eh {
+								LogPass(t, "Authorization header check for SignDirect passed.")
+								passed++
+							} else {
+								LogFail(t, "Authorization header check for SignDirect failed with mismatch.")
+								t.Log("Header expected was ", eh)
+								t.Log("Header received was ", v.Request.Header.Get("Authorization"))
+								t.Fail()
+								failed++
+							}
+
+							evaluated++
+							LogTest(t, "fixture ", k, " GenerateAuthorization() test")
+							auth, err := signer.GenerateAuthorization(v.Request, v.AuthHeaders, sig)
+							if err != nil {
+								LogFail(t, "Authorization header check for GenerateAuthorization failed with error type ", signers.GetErrorTypeText(signers.GetErrorType(err)))
+								t.Log("Error message: ", err.Error())
+								failed++
+							} else if auth == eh {
+								LogPass(t, "Authorization header check for GenerateAuthorization passed.")
+								passed++
+							} else {
+								LogFail(t, "Authorization header check for GenerateAuthorization failed with mismatch.")
+								t.Log("Header expected was ", eh)
+								t.Log("Header received was ", auth)
+								t.Fail()
+								failed++
+							}
+
+						} else {
+							LogSkip(t, "Skipping fixture ", k, " Check test: no expected authorization header provided for ", testVersion)
+							skipped++
+							LogSkip(t, "Skipping fixture ", k, " SignDirect test: no expected authorization header provided for ", testVersion)
+							skipped++
+							LogSkip(t, "Skipping fixture ", k, " GenerateAuthorization test: no expected authorization header provided for ", testVersion)
+							skipped++
+						}
 
 						if v.Response != nil {
 							if _, ok := v.Response.Expected[testVersion]; !ok {
-								LogSkip(t, "Skipping fixture ", k, " response signature - no v2 expected signature.")
+								LogSkip(t, "Skipping fixture ", k, " response signature - no ", testVersion, " expected signature.")
 								skipped++
 								continue
 							}

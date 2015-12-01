@@ -21,6 +21,9 @@ type Signer interface {
 	HashBody(req *http.Request) (string, *AuthenticationError)
 	GetResponseSigner() ResponseSigner
 	ParseAuthHeaders(req *http.Request) map[string]string
+	Check(req *http.Request, secret string) *AuthenticationError
+	SignDirect(req *http.Request, authHeaders map[string]string, secret string) *AuthenticationError
+	GenerateAuthorization(req *http.Request, authHeaders map[string]string, signature string) (string, *AuthenticationError)
 }
 
 type ResponseSigner interface {

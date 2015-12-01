@@ -101,6 +101,44 @@ func (v *V1Signer) Sign(req *http.Request, authHeaders map[string]string, secret
 	return base64.StdEncoding.EncodeToString(hsm), nil
 }
 
+func (v *V1Signer) Check(req *http.Request, secret string) *signers.AuthenticationError {
+	sig, err := v.Sign(req, map[string]string{}, secret)
+	if err != nil {
+		return err
+	}
+	header := req.Header.Get("Authorization")
+	parts := strings.SplitN(header, ":", 2)
+	if len(parts) < 2 {
+		return signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Signature missing from authorization header.")
+	}
+	if sig != parts[1] {
+		return signers.Errorf(403, signers.ErrorTypeSignatureMismatch, "Signature does not match expected signature.")
+	}
+	return nil
+}
+
+func (v *V1Signer) SignDirect(req *http.Request, authHeaders map[string]string, secret string) *signers.AuthenticationError {
+	sig, err := v.Sign(req, map[string]string{}, secret)
+	if err != nil {
+		return err
+	}
+	ah, err := v.GenerateAuthorization(req, authHeaders, sig)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", ah)
+	return nil
+}
+
+func (v *V1Signer) GenerateAuthorization(req *http.Request, authHeaders map[string]string, signature string) (string, *signers.AuthenticationError) {
+	if acc, ok := authHeaders["id"]; !ok {
+		return "", signers.Errorf(500, signers.ErrorTypeInternalError, "Missing access key for signature.")
+	} else {
+		return fmt.Sprintf("Acquia %s:%s", acc, signature), nil
+	}
+}
+
 func (v *V1Signer) GetIdentificationRegex() *regexp.Regexp {
 	return v.IdRegex
 }

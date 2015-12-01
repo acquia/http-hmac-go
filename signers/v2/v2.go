@@ -48,7 +48,7 @@ func (v *V2Signer) ParseAuthHeaders(req *http.Request) map[string]string {
 }
 
 func NewV2Signer(digest func() hash.Hash) (*V2Signer, *signers.AuthenticationError) {
-	re, err := regexp.Compile("(?i)^\\s*acquia-http-hmac.*?version=\"2.0\".*?$")
+	re, err := regexp.Compile("(?i)^\\s*acquia-http-hmac.*?version=\"2\\.0\".*?$")
 	if err != nil {
 		return nil, signers.Errorf(500, signers.ErrorTypeInternalError, "Could not compile regular expression for identifier: %s", err.Error())
 	}

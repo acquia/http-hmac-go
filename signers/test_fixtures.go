@@ -83,6 +83,23 @@ func MakeBody(content string) io.ReadCloser {
 
 var Fixtures []*TestFixture = []*TestFixture{
 	&TestFixture{
+		TestName:   "v1 - simple GET request - invalid header in v2",
+		SystemTime: 1432075982,
+		Digest:     sha1.New,
+		Expected: map[string]string{
+			"v1": "7Tq3+JP3lAu4FoJz81XEx5+qfOc=",
+		},
+		Request: &http.Request{
+			Method: "GET",
+			URL: SilentURLParse("http://example.com/resource/1?key=value"),
+		},
+		AuthHeaders: map[string]string{}
+		SecretKey: "secret-key",
+		ErrorType: map[string]ErrorType{
+			"v2": ErrorTypeInvalidAuthHeader,
+		},
+	}
+	&TestFixture{
 		TestName:   "v1 - valid request without additional signed headers - invalid header in v2",
 		SystemTime: 1432075982,
 		Digest:     sha1.New,
@@ -350,7 +367,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 
 var CompatFixtures []*CompatibilityTestFixture = []*CompatibilityTestFixture{
 	&CompatibilityTestFixture{
-		TestName: "Identify a v1 signature",
+		TestName: "Identify a v2 signature",
 		Request: &http.Request{
 			Method: "GET",
 			Header: MakeHeader(map[string][]string{
@@ -366,7 +383,7 @@ var CompatFixtures []*CompatibilityTestFixture = []*CompatibilityTestFixture{
 		Expected:   "MRlPr/Z1WQY2sMthcaEqETRMw4gPYXlPcTpaLWS2gcc=",
 	},
 	&CompatibilityTestFixture{
-		TestName: "Identify a v2 signature",
+		TestName: "Identify a v1 signature",
 		Request: &http.Request{
 			Method: "POST",
 			Body:   MakeBody("test content"),

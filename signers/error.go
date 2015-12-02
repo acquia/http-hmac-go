@@ -3,7 +3,7 @@ package signers
 import "fmt"
 
 type AuthenticationError struct {
-	error
+	Message    string
 	HttpStatus int
 	ErrorType  ErrorType
 }
@@ -24,12 +24,12 @@ const (
 )
 
 func (a *AuthenticationError) Error() string {
-	return a.error.Error()
+	return a.Message
 }
 
 func Errorf(status int, errtype ErrorType, format string, args ...interface{}) *AuthenticationError {
 	return &AuthenticationError{
-		error:      fmt.Errorf(format, args...),
+		Message:    fmt.Sprintf(format, args...),
 		HttpStatus: status,
 		ErrorType:  errtype,
 	}

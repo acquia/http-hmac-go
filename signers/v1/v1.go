@@ -35,7 +35,13 @@ func NewV1Signer(digest func() hash.Hash) (*V1Signer, *signers.AuthenticationErr
 }
 
 func ParseAuthHeaders(req *http.Request) map[string]string {
-	return map[string]string{}
+	ret := map[string]string{}
+	p1 := strings.SplitN(req.Header.Get("Authorization"), " ", 2)
+	if len(p1) > 1 {
+		p2 := strings.SplitN(p1[1], ":", 2)
+		ret["id"] = p2[0]
+	}
+	return ret
 }
 
 func (v *V1Signer) ParseAuthHeaders(req *http.Request) map[string]string {

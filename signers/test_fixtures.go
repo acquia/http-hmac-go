@@ -171,9 +171,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 			Method: "GET",
 			Header: MakeHeader(map[string][]string{
 				"X-Authorization-Timestamp": []string{"1432075982"},
-				"Host": []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task-status/133?limit=10"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task-status/133?limit=10"),
 		},
 		AuthHeaders: map[string]string{
 			"realm":   "Pipet service",
@@ -207,9 +207,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 				"X-Authorization-Timestamp":      []string{"1432075982"},
 				"X-Authorization-Content-SHA256": []string{"6paRNxUA7WawFxJpRp4cEixDjHq3jfIKX072k9slalo="},
 				"Content-Type":                   []string{"application/json"},
-				"Host":                           []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
 			"realm":   "Pipet service",
@@ -224,6 +224,36 @@ var Fixtures []*TestFixture = []*TestFixture{
 		},
 	},
 	&TestFixture{
+		TestName:   "v2 - valid POST request for register endpoint",
+		SystemTime: 1449578521,
+		Digest:     sha256.New,
+		Expected: map[string]string{
+			"v2": "1Xun5VAPl40+o7u3OVoffC/MtSaGvsw/diX6g+PEjbI=",
+		},
+		Request: &http.Request{
+			Method: "POST",
+			Body:   MakeBody("{\"method\":\"hi.bob\",\"params\":[\"5\",\"4\",\"8\"]}"),
+			Header: MakeHeader(map[string][]string{
+				"X-Authorization-Timestamp":      []string{"1449578521"},
+				"X-Authorization-Content-SHA256": []string{"HDzfVjUuR/lcLcnq/DK8qh9ZFeLaRQaRTSd0o8AiKHc="},
+				"Content-Type":                   []string{"application/json"},
+			}),
+			Host: "54.154.147.142:3000",
+			URL:  SilentURLParse("http://54.154.147.142:3000/register"),
+		},
+		AuthHeaders: map[string]string{
+			"realm":   "Plexus",
+			"id":      "f0d16792-cdc9-4585-a5fd-bae3d898d8c5",
+			"nonce":   "64d02132-40bf-4fce-85bf-3f1bb1bfe7dd",
+			"version": "2.0",
+		},
+		SecretKey: "eox4TsBBPhpi737yMxpdBbr3sgg/DEC4m47VXO0B8qJLsbdMsmN47j/ZF/EFpyUKtAhm0OWXMGaAjRaho7/93Q==",
+		ErrorType: map[string]ErrorType{},
+		ExpectedHeader: map[string]string{
+			"v2": `acquia-http-hmac headers="",id="f0d16792-cdc9-4585-a5fd-bae3d898d8c5",nonce="64d02132-40bf-4fce-85bf-3f1bb1bfe7dd",realm="Plexus",signature="1Xun5VAPl40+o7u3OVoffC/MtSaGvsw/diX6g+PEjbI=",version="2.0"`,
+		},
+	},
+	&TestFixture{
 		TestName:   "v2 - request with missing timestamp",
 		SystemTime: 1432075982,
 		Digest:     sha256.New,
@@ -234,9 +264,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 			Header: MakeHeader(map[string][]string{
 				"X-Authorization-Content-SHA256": []string{"6paRNxUA7WawFxJpRp4cEixDjHq3jfIKX072k9slalo="},
 				"Content-Type":                   []string{"application/json"},
-				"Host":                           []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
 			"realm":   "Pipet service",
@@ -261,9 +291,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 			Header: MakeHeader(map[string][]string{
 				"X-Authorization-Timestamp": []string{"1432075982"},
 				"Content-Type":              []string{"application/json"},
-				"Host":                      []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
 			"realm":   "Pipet service",
@@ -289,9 +319,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 				"X-Authorization-Timestamp":      []string{"1432075982"},
 				"X-Authorization-Content-SHA256": []string{"this is not actually a B64 encoded SHA-256 hash and it is unlikely to pass the test"},
 				"Content-Type":                   []string{"application/json"},
-				"Host":                           []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
 			"realm":   "Pipet service",
@@ -317,9 +347,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 				"X-Authorization-Timestamp":      []string{"1432075982"},
 				"X-Authorization-Content-SHA256": []string{"6paRNxUA7WawFxJpRp4cEixDjHq3jfIKX072k9slalo="},
 				"Content-Type":                   []string{"application/json"},
-				"Host":                           []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
 			"realm":   "Pipet service",
@@ -345,9 +375,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 				"X-Authorization-Timestamp":      []string{"1432075982"},
 				"X-Authorization-Content-SHA256": []string{"6paRNxUA7WawFxJpRp4cEixDjHq3jfIKX072k9slalo="},
 				"Content-Type":                   []string{"application/json"},
-				"Host":                           []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
 			"realm":   "Pipet service",
@@ -373,9 +403,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 				"X-Authorization-Timestamp":      []string{"1432075982"},
 				"X-Authorization-Content-SHA256": []string{"6paRNxUA7WawFxJpRp4cEixDjHq3jfIKX072k9slalo="},
 				"Content-Type":                   []string{"application/json"},
-				"Host":                           []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task/"),
 		},
 		AuthHeaders: map[string]string{
 			"realm":   "Pipet service",
@@ -399,9 +429,9 @@ var CompatFixtures []*CompatibilityTestFixture = []*CompatibilityTestFixture{
 			Header: MakeHeader(map[string][]string{
 				"X-Authorization-Timestamp": []string{"1432075982"},
 				"Authorization":             []string{`acquia-http-hmac realm="Pipet%20service",id="efdde334-fe7b-11e4-a322-1697f925ec7b",nonce="d1954337-5319-4821-8427-115542e08d10",version="2.0",headers="",signature="MRlPr/Z1WQY2sMthcaEqETRMw4gPYXlPcTpaLWS2gcc="`},
-				"Host":                      []string{"example.acquiapipet.net"},
 			}),
-			URL: SilentURLParse("https://example.acquiapipet.net/v1.0/task-status/133?limit=10"),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task-status/133?limit=10"),
 		},
 		SecretKey:  "W5PeGMxSItNerkNFqQMfYiJvH14WzVJMy54CPoTAYoI=",
 		SystemTime: 1432075982,

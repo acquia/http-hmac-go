@@ -99,7 +99,7 @@ func (v *V2Signer) CreateSignable(req *http.Request, authHeaders map[string]stri
 	b.WriteString(method)
 	b.WriteString("\n")
 
-	b.WriteString(req.Header.Get("Host"))
+	b.WriteString(req.Host)
 	b.WriteString("\n")
 
 	b.WriteString(signers.Path(req.URL))

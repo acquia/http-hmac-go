@@ -126,7 +126,7 @@ func (v *V2Signer) CreateSignable(req *http.Request, authHeaders map[string]stri
 
 	b.WriteString(req.Header.Get("X-Authorization-Timestamp"))
 
-	if method != "GET" && method != "HEAD" {
+	if bodyhash != "" && req.ContentLength > 0 {
 		b.WriteString("\n")
 		b.WriteString(strings.ToLower(req.Header.Get("Content-Type")))
 		b.WriteString("\n")

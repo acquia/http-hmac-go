@@ -58,3 +58,27 @@ func (v *V2ResponseSigner) SignResponseDirect(req *http.Request, rw *signers.Sig
 	rw.Header().Set("X-Server-Authorization-HMAC-SHA256", rsig)
 	return nil
 }
+
+func (v *V2ResponseSigner) Check(req *http.Request, resp *http.Response, secret string) *signers.AuthenticationError {
+	got := resp.Header.Get("X-Server-Authorization-HMAC-SHA256")
+	if got == "" {
+		return signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Signature missing from response.")
+	}
+	rb, err := signers.ReadResponseBody(resp)
+	if err != nil {
+		return signers.Errorf(500, signers.ErrorTypeUnknown, "Cannot read response body: "+err.Error())
+	}
+	srw := signers.NewDummySignableResponseWriter(rb)
+	sig, serr := v.SignResponse(req, srw, secret)
+	if serr != nil {
+		return serr
+	}
+	if sig != got {
+		return signers.Errorf(403, signers.ErrorTypeSignatureMismatch, "Signature does not match expected signature.")
+	}
+	return nil
+}
+
+func (v *V2ResponseSigner) SetTrailer(rw http.ResponseWriter) {
+	rw.Header().Add("Trailer", "X-Server-Authorization-HMAC-SHA256")
+}

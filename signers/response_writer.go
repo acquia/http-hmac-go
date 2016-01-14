@@ -7,7 +7,31 @@ import (
 
 type SignableResponseWriter struct {
 	http.ResponseWriter
+	code int
 	Body bytes.Buffer
+}
+
+type dummyResponseWriter struct {
+	header http.Header
+}
+
+func newDummyResponseWriter() http.ResponseWriter {
+	return &dummyResponseWriter{
+		header: MakeHeader(map[string][]string{}),
+	}
+}
+func (d *dummyResponseWriter) Header() http.Header {
+	return d.header
+}
+func (d *dummyResponseWriter) Write(b []byte) (int, error) {
+	return len(b), nil
+}
+func (d *dummyResponseWriter) WriteHeader(i int) {}
+
+func NewDummySignableResponseWriter(body []byte) *SignableResponseWriter {
+	ret := NewSignableResponseWriter(newDummyResponseWriter())
+	ret.Write(body)
+	return ret
 }
 
 func NewSignableResponseWriter(h http.ResponseWriter) *SignableResponseWriter {
@@ -22,10 +46,14 @@ func (s *SignableResponseWriter) Header() http.Header {
 }
 
 func (s *SignableResponseWriter) Write(b []byte) (int, error) {
-	s.Body.Write(b)
-	return s.ResponseWriter.Write(b)
+	return s.Body.Write(b)
 }
 
 func (s *SignableResponseWriter) WriteHeader(status int) {
-	s.ResponseWriter.WriteHeader(status)
+	s.code = status
+}
+
+func (s *SignableResponseWriter) Close() (int, error) {
+	s.ResponseWriter.WriteHeader(s.code)
+	return s.ResponseWriter.Write(s.Body.Bytes())
 }

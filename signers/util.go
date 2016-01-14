@@ -4,11 +4,21 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 )
+
+var Log *log.Logger
+
+func Logf(format string, args ...interface{}) {
+	if Log == nil {
+		return
+	}
+	Log.Printf(format, args...)
+}
 
 func ReadBody(r *http.Request) ([]byte, error) {
 	var data []byte = []byte{}

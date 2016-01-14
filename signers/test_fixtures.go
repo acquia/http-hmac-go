@@ -48,23 +48,6 @@ func MakeHeader(m map[string][]string) http.Header {
 	return h
 }
 
-type dummyResponseWriter struct {
-	header http.Header
-}
-
-func newDummyResponseWriter() http.ResponseWriter {
-	return &dummyResponseWriter{
-		header: MakeHeader(map[string][]string{}),
-	}
-}
-func (d *dummyResponseWriter) Header() http.Header {
-	return d.header
-}
-func (d *dummyResponseWriter) Write(b []byte) (int, error) {
-	return len(b), nil
-}
-func (d *dummyResponseWriter) WriteHeader(i int) {}
-
 func PrepareResponseWriter(b string) *SignableResponseWriter {
 	s := &SignableResponseWriter{
 		ResponseWriter: newDummyResponseWriter(),

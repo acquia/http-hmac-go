@@ -96,7 +96,9 @@ func (v *V1Signer) CreateSignable(req *http.Request, authHeaders map[string]stri
 
 	b.WriteString(req.URL.RequestURI())
 
-	return b.Bytes()
+	ret := b.Bytes()
+	signers.Logf("Signable:\n%s", string(ret))
+	return ret
 }
 
 func (v *V1Signer) Sign(req *http.Request, authHeaders map[string]string, secret string) (string, *signers.AuthenticationError) {

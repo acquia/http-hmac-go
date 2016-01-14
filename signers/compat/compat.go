@@ -38,13 +38,13 @@ func (s *SignatureIdentifier) getNewInstanceByVersion(digest func() hash.Hash, v
 	case 1:
 		sig, err := v1.NewV1Signer(digest)
 		if err != nil {
-			panic(err.Error())
+			panic(err.Message)
 		}
 		return sig
 	case 2:
 		sig, err := v2.NewV2Signer(digest)
 		if err != nil {
-			panic(err.Error())
+			panic(err.Message)
 		}
 		return sig
 	default:

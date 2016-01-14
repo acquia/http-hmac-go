@@ -105,7 +105,7 @@ func (v *V2Signer) CreateSignable(req *http.Request, authHeaders map[string]stri
 	b.WriteString(signers.Path(req.URL))
 	b.WriteString("\n")
 
-	b.WriteString(req.URL.Query().Encode())
+	b.WriteString(strings.Replace(req.URL.Query().Encode(), "+", "%20", -1))
 	b.WriteString("\n")
 
 	b.WriteString(v.stringAuthHeaders(authHeaders))
@@ -134,7 +134,9 @@ func (v *V2Signer) CreateSignable(req *http.Request, authHeaders map[string]stri
 		b.WriteString(bodyhash)
 	}
 
-	return b.Bytes()
+	ret := b.Bytes()
+	signers.Logf("Signable:\n%s", string(ret))
+	return ret
 }
 
 func (v *V2Signer) ahKeyCheck(authHeaders map[string]string, key string) *signers.AuthenticationError {
@@ -173,26 +175,9 @@ func (v *V2Signer) Sign(req *http.Request, authHeaders map[string]string, secret
 		return "", signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
 	}
 	if len(body) > 0 {
-		if req.Header.Get("X-Authorization-Content-Sha256") == "" {
-			return "", signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required header X-Authorization-Content-SHA256.")
-		}
 		bodyhash = v.HashBytes(body)
-		if bodyhash != req.Header.Get("X-Authorization-Content-Sha256") {
-			return "", signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Content mismatch - X-Authorization-Content-SHA256 must match the SHA hash of the request body.")
-		}
 	}
-	timestamp, err := strconv.ParseInt(req.Header.Get("X-Authorization-Timestamp"), 10, 64)
-	if err != nil {
-		return "", signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Timestamp parse error: %s", err.Error())
-	}
-	if timestamp > signers.Now().Unix()+900 {
-		err := signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the future.", timestamp)
-		return "", err
-	}
-	if timestamp < signers.Now().Unix()-900 {
-		err := signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the past.", timestamp)
-		return "", err
-	}
+
 	decoded, err := base64.StdEncoding.DecodeString(secret)
 	if err != nil {
 		return "", signers.Errorf(403, signers.ErrorTypeOutdatedKeypair, "The provided secret key is not in a valid base64 format: %s", err.Error())
@@ -206,9 +191,35 @@ func (v *V2Signer) Sign(req *http.Request, authHeaders map[string]string, secret
 
 func (v *V2Signer) Check(req *http.Request, secret string) *signers.AuthenticationError {
 	authHeaders := ParseAuthHeaders(req)
-	sig, err := v.Sign(req, authHeaders, secret)
+	if req.Header.Get("X-Authorization-Timestamp") == "" {
+		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required header X-Authorization-Timestamp.")
+	}
+	body, err := signers.ReadBody(req)
 	if err != nil {
-		return err
+		return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
+	}
+	if len(body) > 0 {
+		if req.Header.Get("X-Authorization-Content-Sha256") == "" {
+			return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required header X-Authorization-Content-SHA256.")
+		}
+		if v.HashBytes(body) != req.Header.Get("X-Authorization-Content-Sha256") {
+			return signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Content mismatch - X-Authorization-Content-SHA256 must match the SHA hash of the request body.")
+		}
+	}
+	timestamp, err := strconv.ParseInt(req.Header.Get("X-Authorization-Timestamp"), 10, 64)
+	if err != nil {
+		return signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Timestamp parse error: %s", err.Error())
+	}
+	if timestamp > signers.Now().Unix()+900 {
+		return signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the future.", timestamp)
+	}
+	if timestamp < signers.Now().Unix()-900 {
+		return signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the past.", timestamp)
+	}
+
+	sig, serr := v.Sign(req, authHeaders, secret)
+	if serr != nil {
+		return serr
 	}
 	got := authHeaders["signature"]
 	if got == "" {
@@ -221,13 +232,23 @@ func (v *V2Signer) Check(req *http.Request, secret string) *signers.Authenticati
 }
 
 func (v *V2Signer) SignDirect(req *http.Request, authHeaders map[string]string, secret string) *signers.AuthenticationError {
-	sig, err := v.Sign(req, authHeaders, secret)
-	if err != nil {
-		return err
+	if req.Header.Get("X-Authorization-Timestamp") == "" {
+		req.Header.Set("X-Authorization-Timestamp", strconv.Itoa(int(signers.Now().Unix())))
 	}
-	ah, err := v.GenerateAuthorization(req, authHeaders, sig)
+	body, err := signers.ReadBody(req)
 	if err != nil {
-		return err
+		return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
+	}
+	if len(body) > 0 && req.Header.Get("X-Authorization-Content-Sha256") == "" {
+		req.Header.Set("X-Authorization-Content-Sha256", v.HashBytes(body))
+	}
+	sig, serr := v.Sign(req, authHeaders, secret)
+	if serr != nil {
+		return serr
+	}
+	ah, serr := v.GenerateAuthorization(req, authHeaders, sig)
+	if serr != nil {
+		return serr
 	}
 
 	req.Header.Set("Authorization", ah)

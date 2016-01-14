@@ -44,7 +44,7 @@ func TestSign(t *testing.T) {
 		signers.OverrideClock(v.SystemTime)
 		signer, err := NewV2Signer(v.Digest)
 		if err != nil {
-			LogFail(t, "Failed to create signer: ", err.Error())
+			LogFail(t, "Failed to create signer: ", err.Message)
 			failed++
 			skipped++         // response check
 			skipped_failure++ // response check
@@ -56,15 +56,15 @@ func TestSign(t *testing.T) {
 			}
 			if err != nil {
 				if v.ErrorType[testVersion] == signers.ErrorTypeNoError {
-					LogFail(t, "Failed to sign request: ", err.Error())
+					LogFail(t, "Failed to sign request: ", err.Message)
 					failed++
 					t.Fail()
 				} else {
-					if signers.GetErrorType(err) == v.ErrorType[testVersion] {
-						LogPass(t, "Got expected error type ", signers.GetErrorTypeText(v.ErrorType[testVersion]), " - ", err.Error())
+					if err.ErrorType == v.ErrorType[testVersion] {
+						LogPass(t, "Got expected error type ", signers.GetErrorTypeText(v.ErrorType[testVersion]), " - ", err.Message)
 						passed++
 					} else {
-						LogFail(t, "Got error type ", signers.GetErrorTypeText(signers.GetErrorType(err)), " - ", err.Error(), " - but expected error type ", signers.GetErrorTypeText(v.ErrorType[testVersion]))
+						LogFail(t, "Got error type ", signers.GetErrorTypeText(err.ErrorType), " - ", err.Message, " - but expected error type ", signers.GetErrorTypeText(v.ErrorType[testVersion]))
 						failed++
 						t.Fail()
 					}
@@ -90,9 +90,12 @@ func TestSign(t *testing.T) {
 								LogPass(t, "Signature check for Check passed.")
 								passed++
 							} else {
-								LogFail(t, "Signature check for Check failed with error type ", signers.GetErrorTypeText(signers.GetErrorType(err)))
-								t.Log("Error message: ", err.Error())
+								LogFail(t, "Signature check for Check failed with error type ", signers.GetErrorTypeText(err.ErrorType))
+								t.Log("Error message: ", err.Message)
 								t.Log("Header being validated was ", eh)
+								t.Log("Sign signature: ", sig)
+								ah := signer.ParseAuthHeaders(v.Request)
+								t.Log("Was signing:\n" + string(signer.CreateSignable(v.Request, ah, v.Request.Header.Get("X-Authorization-Content-SHA256"))))
 								t.Fail()
 								failed++
 							}
@@ -101,8 +104,8 @@ func TestSign(t *testing.T) {
 							LogTest(t, "fixture ", k, " SignDirect() test")
 							err := signer.SignDirect(v.Request, v.AuthHeaders, v.SecretKey)
 							if err != nil {
-								LogFail(t, "Authorization header check for SignDirect failed with error type ", signers.GetErrorTypeText(signers.GetErrorType(err)))
-								t.Log("Error message: ", err.Error())
+								LogFail(t, "Authorization header check for SignDirect failed with error type ", signers.GetErrorTypeText(err.ErrorType))
+								t.Log("Error message: ", err.Message)
 								failed++
 							} else if v.Request.Header.Get("Authorization") == eh {
 								LogPass(t, "Authorization header check for SignDirect passed.")
@@ -119,8 +122,8 @@ func TestSign(t *testing.T) {
 							LogTest(t, "fixture ", k, " GenerateAuthorization() test")
 							auth, err := signer.GenerateAuthorization(v.Request, v.AuthHeaders, sig)
 							if err != nil {
-								LogFail(t, "Authorization header check for GenerateAuthorization failed with error type ", signers.GetErrorTypeText(signers.GetErrorType(err)))
-								t.Log("Error message: ", err.Error())
+								LogFail(t, "Authorization header check for GenerateAuthorization failed with error type ", signers.GetErrorTypeText(err.ErrorType))
+								t.Log("Error message: ", err.Message)
 								failed++
 							} else if auth == eh {
 								LogPass(t, "Authorization header check for GenerateAuthorization passed.")
@@ -159,7 +162,7 @@ func TestSign(t *testing.T) {
 									v.Request.Header.Set("Authorization", aheader)
 									rsig, err := rsign.SignResponse(v.Request, v.Response.Response, v.SecretKey)
 									if err != nil {
-										LogFail(t, "Failed to sign response: ", err.Error())
+										LogFail(t, "Failed to sign response: ", err.Message)
 										failed++
 										t.Fail()
 									}

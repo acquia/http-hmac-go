@@ -58,7 +58,7 @@ func TestIdentifyAndSign(t *testing.T) {
 			} else {
 				sig, err := signer.Sign(v.Request, signer.ParseAuthHeaders(v.Request), v.SecretKey)
 				if err != nil {
-					LogFail(t, "Could not sign request due to error: ", err.Error())
+					LogFail(t, "Could not sign request due to error: ", err.Message)
 					failed++
 					t.Fail()
 				} else {

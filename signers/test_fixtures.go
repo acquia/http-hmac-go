@@ -184,8 +184,9 @@ var Fixtures []*TestFixture = []*TestFixture{
 			"v2": "XDBaXgWFCY3aAgQvXyGXMbw9Vds2WPKJe2yP+1eXQgM=",
 		},
 		Request: &http.Request{
-			Method: "POST",
-			Body:   MakeBody("{\"method\":\"hi.bob\",\"params\":[\"5\",\"4\",\"8\"]}"),
+			Method:        "POST",
+			Body:          MakeBody("{\"method\":\"hi.bob\",\"params\":[\"5\",\"4\",\"8\"]}"),
+			ContentLength: int64(len("{\"method\":\"hi.bob\",\"params\":[\"5\",\"4\",\"8\"]}")),
 			Header: MakeHeader(map[string][]string{
 				"X-Authorization-Timestamp":      []string{"1432075982"},
 				"X-Authorization-Content-SHA256": []string{"6paRNxUA7WawFxJpRp4cEixDjHq3jfIKX072k9slalo="},
@@ -211,14 +212,15 @@ var Fixtures []*TestFixture = []*TestFixture{
 		SystemTime: 1449578521,
 		Digest:     sha256.New,
 		Expected: map[string]string{
-			"v2": "1Xun5VAPl40+o7u3OVoffC/MtSaGvsw/diX6g+PEjbI=",
+			"v2": "4VtBHjqrdDeYrJySoJVDUHpN9u3vyTsyOLz4chezi98=",
 		},
 		Request: &http.Request{
-			Method: "POST",
-			Body:   MakeBody("{\"method\":\"hi.bob\",\"params\":[\"5\",\"4\",\"8\"]}"),
+			Method:        "POST",
+			Body:          MakeBody("{\"method\":\"hi.bob\",\"params\":[\"5\",\"4\",\"8\"]}"),
+			ContentLength: int64(len("{\"method\":\"hi.bob\",\"params\":[\"5\",\"4\",\"8\"]}")),
 			Header: MakeHeader(map[string][]string{
 				"X-Authorization-Timestamp":      []string{"1449578521"},
-				"X-Authorization-Content-SHA256": []string{"HDzfVjUuR/lcLcnq/DK8qh9ZFeLaRQaRTSd0o8AiKHc="},
+				"X-Authorization-Content-SHA256": []string{"6paRNxUA7WawFxJpRp4cEixDjHq3jfIKX072k9slalo="},
 				"Content-Type":                   []string{"application/json"},
 			}),
 			Host: "54.154.147.142:3000",
@@ -233,7 +235,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 		SecretKey: "eox4TsBBPhpi737yMxpdBbr3sgg/DEC4m47VXO0B8qJLsbdMsmN47j/ZF/EFpyUKtAhm0OWXMGaAjRaho7/93Q==",
 		ErrorType: map[string]ErrorType{},
 		ExpectedHeader: map[string]string{
-			"v2": `acquia-http-hmac headers="",id="f0d16792-cdc9-4585-a5fd-bae3d898d8c5",nonce="64d02132-40bf-4fce-85bf-3f1bb1bfe7dd",realm="Plexus",signature="1Xun5VAPl40+o7u3OVoffC/MtSaGvsw/diX6g+PEjbI=",version="2.0"`,
+			"v2": `acquia-http-hmac id="f0d16792-cdc9-4585-a5fd-bae3d898d8c5",nonce="64d02132-40bf-4fce-85bf-3f1bb1bfe7dd",realm="Plexus",signature="4VtBHjqrdDeYrJySoJVDUHpN9u3vyTsyOLz4chezi98=",version="2.0"`,
 		},
 	},
 	&TestFixture{
@@ -263,7 +265,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 		},
 		ExpectedHeader: map[string]string{},
 	},
-	&TestFixture{
+	/*&TestFixture{
 		TestName:   "v2 - request with missing content SHA",
 		SystemTime: 1432075982,
 		Digest:     sha256.New,
@@ -373,7 +375,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			"v2": ErrorTypeTimestampRangeError,
 		},
 		ExpectedHeader: map[string]string{},
-	},
+	},*/
 	&TestFixture{
 		TestName:   "v2 - outdated keypair (non-b64 encoded secret key)",
 		SystemTime: 1432075982,

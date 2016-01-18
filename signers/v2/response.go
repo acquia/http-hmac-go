@@ -1,10 +1,10 @@
 package v2
 
 import (
+	signers ".."
 	"bytes"
 	"crypto/hmac"
 	"encoding/base64"
-	"github.com/acquia/http-hmac-go/signers"
 	"hash"
 	"net/http"
 )

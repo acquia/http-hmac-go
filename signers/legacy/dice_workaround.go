@@ -1,12 +1,12 @@
 package legacy
 
 import (
+	signers ".."
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/acquia/http-hmac-go/signers"
 	"hash"
 	"net/http"
 	"net/url"

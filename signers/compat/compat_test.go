@@ -1,10 +1,10 @@
 package compat
 
 import (
+	signers ".."
+	"../v1"
+	"../v2"
 	"fmt"
-	"github.com/acquia/http-hmac-go/signers"
-	"github.com/acquia/http-hmac-go/signers/v1"
-	"github.com/acquia/http-hmac-go/signers/v2"
 	"testing"
 )
 

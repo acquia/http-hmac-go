@@ -8,6 +8,9 @@ fi
 ec=0
 for fn in "$cdir"/*; do
 	if [ -d "$fn" ]; then
+		if basename $cdir | grep -E '(http-hmac-go|_vendor)'; then
+			continue
+		fi
 		$0 "$fn"
 		ed=$?
 		if [ $ec -eq 0 ]; then

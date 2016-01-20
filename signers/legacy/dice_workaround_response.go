@@ -45,7 +45,7 @@ func (v *V2DiceLegacyResponseSigner) SignResponse(req *http.Request, rw *signers
 	// It also did not decode the secret key from base64.
 	b := v.CreateSignable(req, authHeaders, rw)
 	h := hmac.New(v.Digest, b)
-	h.Write(secret)
+	h.Write([]byte(secret))
 	hsm := h.Sum(nil)
 	return base64.StdEncoding.EncodeToString(hsm), nil
 }

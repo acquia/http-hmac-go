@@ -126,7 +126,10 @@ func (v *V2Signer) CreateSignable(req *http.Request, authHeaders map[string]stri
 
 	b.WriteString(req.Header.Get("X-Authorization-Timestamp"))
 
-	if bodyhash != "" && req.ContentLength > 0 {
+	// We cannot rely on the contentLength to be accurate. If either the body
+	// or the contentLength is not empty, we add a hash of the body and the
+	// content-type.
+	if bodyhash != "" || req.ContentLength > 0 {
 		b.WriteString("\n")
 		b.WriteString(strings.ToLower(req.Header.Get("Content-Type")))
 		b.WriteString("\n")

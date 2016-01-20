@@ -1,8 +1,8 @@
 package v2
 
 import (
-	signers ".."
 	"fmt"
+	"github.com/acquia/http-hmac-go/signers"
 	"testing"
 )
 

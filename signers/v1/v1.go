@@ -1,13 +1,13 @@
 package v1
 
 import (
-	signers ".."
 	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/acquia/http-hmac-go/signers"
 	"hash"
 	"net/http"
 	"regexp"

@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/acquia/http-hmac-go/signers"
+	"github.com/acquia/http-hmac-go/signers/v1"
 	"net/http"
 	"strings"
 )

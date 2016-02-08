@@ -67,19 +67,19 @@ func (v *LiftSigner) CreateSignable(req *http.Request, authHeaders map[string]st
 	// 3. Combine the specific headers using a single newline character (U+000A) as
 	// the separator and append them to the canonical representation, followed by
 	// a single newline character (U+000A).
-	acceptValue := strings.ToLower(req.Header.Get("Accept"))
+	acceptValue := req.Header.Get("Accept")
 	if len(acceptValue) > 0 {
 		b.WriteString("accept:" + acceptValue)
 		b.WriteString("\n")
 	}
 
-	hostValue := strings.ToLower(req.Host)
+	hostValue := req.Host
 	if len(hostValue) > 0 {
 		b.WriteString("host:" + hostValue)
 		b.WriteString("\n")
 	}
 
-	userAgentValue := strings.ToLower(req.UserAgent())
+	userAgentValue := req.UserAgent()
 	if len(userAgentValue) > 0 {
 		b.WriteString("user-agent:" + userAgentValue)
 		b.WriteString("\n")
@@ -90,13 +90,12 @@ func (v *LiftSigner) CreateSignable(req *http.Request, authHeaders map[string]st
 	// @todo Documentation tells us including hostname, in practice its without
 	// the hostname and only includes the path.
 	b.WriteString(req.URL.Path)
-	b.WriteString("\n")
 
 	// Add sorted parameters
 	sortedFragment := v.getSortedFragment(req.URL)
-	if len(userAgentValue) > 0 {
-		b.WriteString(sortedFragment)
+	if len(sortedFragment) > 0 {
 		b.WriteString("\n")
+		b.WriteString(sortedFragment)
 	}
 
 	ret := b.Bytes()

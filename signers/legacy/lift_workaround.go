@@ -9,12 +9,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/acquia/http-hmac-go/signers"
-	"hash"
 	"net/http"
+	"net/url"
 	"regexp"
-	"strings"
 	"sort"
-	"net/URL"
+	"strings"
 )
 
 type LiftSigner struct {
@@ -37,20 +36,6 @@ func NewLiftSigner() (*LiftSigner, *signers.AuthenticationError) {
 	}, nil
 }
 
-func ParseAuthHeaders(req *http.Request) map[string]string {
-	ret := map[string]string{}
-	p1 := strings.SplitN(req.Header.Get("Authorization"), " ", 2)
-	if len(p1) > 1 {
-		p2 := strings.SplitN(p1[1], ":", 2)
-		ret["id"] = p2[0]
-	}
-	return ret
-}
-
-func (v *LiftSigner) ParseAuthHeaders(req *http.Request) map[string]string {
-	return ParseAuthHeaders(req)
-}
-
 func (v *LiftSigner) HashBody(req *http.Request) (string, *signers.AuthenticationError) {
 	h := md5.New()
 	data, err := signers.ReadBody(req)
@@ -64,10 +49,6 @@ func (v *LiftSigner) HashBody(req *http.Request) (string, *signers.Authenticatio
 
 // See guidelines at https://docs.acquia.com/lift/omni/api/hmac
 func (v *LiftSigner) CreateSignable(req *http.Request, authHeaders map[string]string) []byte {
-	bodyhash, err := v.HashBody(req)
-	if err != nil {
-		return nil
-	}
 	var b bytes.Buffer
 
 	// Add the HTTP verb for the request (for example, GET or POST) in capital
@@ -88,19 +69,19 @@ func (v *LiftSigner) CreateSignable(req *http.Request, authHeaders map[string]st
 	// a single newline character (U+000A).
 	acceptValue := strings.ToLower(req.Header.Get("Accept"))
 	if len(acceptValue) > 0 {
-		b.WriteString("accept:" + acceptValue))
+		b.WriteString("accept:" + acceptValue)
 		b.WriteString("\n")
 	}
 
 	hostValue := strings.ToLower(req.Host)
 	if len(hostValue) > 0 {
-		b.WriteString("host:" + hostValue))
+		b.WriteString("host:" + hostValue)
 		b.WriteString("\n")
 	}
 
 	userAgentValue := strings.ToLower(req.UserAgent())
 	if len(userAgentValue) > 0 {
-		b.WriteString("user-agent:" + userAgentValue))
+		b.WriteString("user-agent:" + userAgentValue)
 		b.WriteString("\n")
 	}
 
@@ -125,19 +106,19 @@ func (v *LiftSigner) CreateSignable(req *http.Request, authHeaders map[string]st
 
 // Sort all parameters by parameter name, and then join them using a single
 // ampersand as the separator.
-func (v *LiftSigner) getSortedFragment(url url.URL) string {
-	values := URL.Query()
+func (v *LiftSigner) getSortedFragment(url *url.URL) string {
+	values := url.Query()
 	var sortedValues []string
 	var keys []string
 	for k := range values {
-  	keys = append(keys, k)
+		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		sortedValues = append(sortedValues, k + "=" values[k])
- 	}
- 	sortedFragment := strings.Join(sortedValues, "&")
- 	return sortedFragment
+		sortedValues = append(sortedValues, k+"="+values.Get(k))
+	}
+	sortedFragment := strings.Join(sortedValues, "&")
+	return sortedFragment
 }
 
 func (v *LiftSigner) Sign(req *http.Request, authHeaders map[string]string, secret string) (string, *signers.AuthenticationError) {

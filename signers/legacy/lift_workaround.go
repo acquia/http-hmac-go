@@ -8,12 +8,13 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/acquia/http-hmac-go/signers"
 	"net/http"
 	"net/url"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/acquia/http-hmac-go/signers"
 )
 
 type LiftSigner struct {
@@ -94,7 +95,7 @@ func (v *LiftSigner) CreateSignable(req *http.Request, authHeaders map[string]st
 	// Add sorted parameters
 	sortedFragment := v.getSortedFragment(req.URL)
 	if len(sortedFragment) > 0 {
-		b.WriteString("\n")
+		b.WriteString("?")
 		b.WriteString(sortedFragment)
 	}
 

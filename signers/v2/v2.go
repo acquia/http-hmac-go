@@ -29,6 +29,9 @@ func EscapeProper(s string) string {
 func ParseAuthHeaders(req *http.Request) map[string]string {
 	auth := req.Header.Get("Authorization")
 	ret := map[string]string{}
+	if len(auth) == 0 {
+		return ret
+	}
 	s1 := strings.SplitN(auth, " ", 2)
 	s2 := strings.Split(s1[1], ",")
 	for len(s2) > 0 {

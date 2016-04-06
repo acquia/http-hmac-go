@@ -144,6 +144,75 @@ var Fixtures []*TestFixture = []*TestFixture{
 		ExpectedHeader: map[string]string{},
 	},
 	&TestFixture{
+		TestName:   "v2 - valid GET request 2",
+		SystemTime: 1432075982,
+		Digest:     sha256.New,
+		Expected: map[string]string{
+			"v2": "1Ku5UroiW1knVP6GH4l7Z4IuQSRxZO2gp/e5yhapv1s=",
+		},
+		Request: &http.Request{
+			Method: "GET",
+			Header: MakeHeader(map[string][]string{
+				"X-Authorization-Timestamp": []string{"1432075982"},
+			}),
+			Host: "example.acquiapipet.net",
+			URL:  SilentURLParse("https://example.acquiapipet.net/v1.0/task-status/145?limit=1"),
+		},
+		AuthHeaders: map[string]string{
+			"realm":   "Pipet service",
+			"id":      "615d6517-1cea-4aa3-b48e-96d83c16c4dd",
+			"nonce":   "24c0c836-4f6c-4ed6-a6b0-e091d75ea19d",
+			"version": "2.0",
+		},
+		SecretKey: "TXkgU2VjcmV0IEtleSBUaGF0IGlzIFZlcnkgU2VjdXJl",
+		Response: &ResponseFixture{
+			Expected: map[string]string{
+				"v2": "C98MEJHnQSNiYCxmI4CxJegO62sGZdzEEiSXgSIoxlo=",
+			},
+			Response: PrepareResponseWriter(`{"id": 145, "status": "in-progress"}`),
+		},
+		ErrorType: map[string]ErrorType{},
+		ExpectedHeader: map[string]string{
+			"v2": `acquia-http-hmac id="615d6517-1cea-4aa3-b48e-96d83c16c4dd",nonce="24c0c836-4f6c-4ed6-a6b0-e091d75ea19d",realm="Pipet%20service",signature="1Ku5UroiW1knVP6GH4l7Z4IuQSRxZO2gp/e5yhapv1s=",version="2.0"`,
+		},
+	},
+	&TestFixture{
+		TestName:   "v2 - valid GET request 3",
+		SystemTime: 1432075982,
+		Digest:     sha256.New,
+		Expected: map[string]string{
+			"v2": "yoHiYvx79ssSDIu3+OldpbFs8RsjrMXgRoM89d5t+zA=",
+		},
+		Request: &http.Request{
+			Method: "GET",
+			Header: MakeHeader(map[string][]string{
+				"X-Authorization-Timestamp": []string{"1432075982"},
+				"X-Custom-Signer1":          []string{"custom-1"},
+				"X-Custom-Signer2":          []string{"custom-2"},
+			}),
+			Host: "example.pipeline.io",
+			URL:  SilentURLParse("https://example.pipeline.io/api/v1/ci/pipelines"),
+		},
+		AuthHeaders: map[string]string{
+			"realm":   "CIStore",
+			"id":      "e7fe97fa-a0c8-4a42-ab8e-2c26d52df059",
+			"nonce":   "a9938d07-d9f0-480c-b007-f1e956bcd027",
+			"headers": "X-Custom-Signer1;X-Custom-Signer2",
+			"version": "2.0",
+		},
+		SecretKey: "bXlzZWNyZXRzZWNyZXR0aGluZ3Rva2VlcA==",
+		Response: &ResponseFixture{
+			Expected: map[string]string{
+				"v2": "cUDFSS5tN5vBBS7orIfUag8jhkaGouBb/o8fstUvTF8=",
+			},
+			Response: PrepareResponseWriter(`[{"pipeline_id":"39b5d58d-0a8f-437d-8dd6-4da50dcc87b7","sitename":"enterprise-g1:sfwiptravis","name":"pipeline.yml","last_job_id":"810e4344-1bed-4fd0-a642-1ba17eb996d5","last_branch":"validate-yaml","last_requested":"2016-03-25T20:26:39.000Z","last_finished":null,"last_status":"succeeded","last_duration":null}]`),
+		},
+		ErrorType: map[string]ErrorType{},
+		ExpectedHeader: map[string]string{
+			"v2": `acquia-http-hmac headers="X-Custom-Signer1%3BX-Custom-Signer2",id="e7fe97fa-a0c8-4a42-ab8e-2c26d52df059",nonce="a9938d07-d9f0-480c-b007-f1e956bcd027",realm="CIStore",signature="yoHiYvx79ssSDIu3+OldpbFs8RsjrMXgRoM89d5t+zA=",version="2.0"`,
+		},
+	},
+	&TestFixture{
 		TestName:   "v2 - valid GET request",
 		SystemTime: 1432075982,
 		Digest:     sha256.New,
@@ -236,6 +305,46 @@ var Fixtures []*TestFixture = []*TestFixture{
 		ErrorType: map[string]ErrorType{},
 		ExpectedHeader: map[string]string{
 			"v2": `acquia-http-hmac id="f0d16792-cdc9-4585-a5fd-bae3d898d8c5",nonce="64d02132-40bf-4fce-85bf-3f1bb1bfe7dd",realm="Plexus",signature="4VtBHjqrdDeYrJySoJVDUHpN9u3vyTsyOLz4chezi98=",version="2.0"`,
+		},
+	},
+	&TestFixture{
+		TestName:   "v2 - valid POST request with signed headers",
+		SystemTime: 1449578521,
+		Digest:     sha256.New,
+		Expected: map[string]string{
+			"v2": "0duvqeMauat7pTULg3EgcSmBjrorrcRkGKxRDtZEa1c=",
+		},
+		Request: &http.Request{
+			Method:        "POST",
+			Body:          MakeBody(`{"cloud_endpoint":"https://cloudapi.acquia.com/v1","cloud_user":"example@acquia.com","cloud_pass":"password","branch":"validate"}`),
+			ContentLength: int64(len(`{"cloud_endpoint":"https://cloudapi.acquia.com/v1","cloud_user":"example@acquia.com","cloud_pass":"password","branch":"validate"}`)),
+			Header: MakeHeader(map[string][]string{
+				"X-Authorization-Timestamp":      []string{"1449578521"},
+				"X-Authorization-Content-SHA256": []string{"2YGTI4rcSnOEfd7hRwJzQ2OuJYqAf7jzyIdcBXCGreQ="},
+				"Content-Type":                   []string{"application/json"},
+				"X-Custom-Signer1":               []string{"custom-1"},
+				"X-Custom-Signer2":               []string{"custom-2"},
+			}),
+			Host: "example.pipeline.io",
+			URL:  SilentURLParse("https://example.pipeline.io/api/v1/ci/pipelines/39b5d58d-0a8f-437d-8dd6-4da50dcc87b7/start"),
+		},
+		AuthHeaders: map[string]string{
+			"realm":   "CIStore",
+			"id":      "e7fe97fa-a0c8-4a42-ab8e-2c26d52df059",
+			"nonce":   "a9938d07-d9f0-480c-b007-f1e956bcd027",
+			"headers": "X-Custom-Signer1;X-Custom-Signer2",
+			"version": "2.0",
+		},
+		SecretKey: "bXlzZWNyZXRzZWNyZXR0aGluZ3Rva2VlcA==",
+		Response: &ResponseFixture{
+			Expected: map[string]string{
+				"v2": "SlOYi3pUZADkzU9wEv7kw3hmxjlEyMqBONFEVd7iDbM=",
+			},
+			Response: PrepareResponseWriter(`"57674bb1-f2ce-4d0f-bfdc-736a78aa027a"`),
+		},
+		ErrorType: map[string]ErrorType{},
+		ExpectedHeader: map[string]string{
+			"v2": `acquia-http-hmac headers="X-Custom-Signer1%3BX-Custom-Signer2",id="e7fe97fa-a0c8-4a42-ab8e-2c26d52df059",nonce="a9938d07-d9f0-480c-b007-f1e956bcd027",realm="CIStore",signature="0duvqeMauat7pTULg3EgcSmBjrorrcRkGKxRDtZEa1c=",version="2.0"`,
 		},
 	},
 	&TestFixture{

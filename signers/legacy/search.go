@@ -79,7 +79,7 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 	logger.Print("acquia_solr_hmac" + acquia_solr_hmac)
 
 	// Check if request time is more than fifteen minutes before or after current time
-	timestamp, err := strconv.ParseInt(acquia_solr_time), 10, 64)
+	timestamp, err := strconv.ParseInt(acquia_solr_time, 10, 64)
 	if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Timestamp parse error: %s", err.Error())
 	}

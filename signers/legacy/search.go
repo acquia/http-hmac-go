@@ -113,7 +113,7 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
     return nil
 }
 
-function addCookiestoRequest() {
+func addCookiestoRequest() {
     r.AddCookie(&http.Cookie{Name: "acquia_solr_time", Value: strconv.FormatInt(request_time, 10)})
     logger.Print("request_time: " + strconv.FormatInt(request_time, 10))
     r.AddCookie(&http.Cookie{Name: "acquia_solr_nonce", Value: nonce})

@@ -1,27 +1,17 @@
 package legacy
 
 import (
-	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
 	"github.com/acquia/http-hmac-go/signers"
 	//"github.com/dchest/uniuri"
 	"hash"
-	"html"
-	"io/ioutil"
 	"log"
 	"os"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
-	"regexp"
-	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
 

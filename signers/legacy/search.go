@@ -24,6 +24,11 @@ type SearchSigner struct {
 }
 
 func NewSearchSigner(digest func() hash.Hash) (*SearchSigner, *signers.AuthenticationError) {
+	re, err := regexp.Compile("(?i)^\\s*acquia_solr_time.*?$")
+	if err != nil {
+		return nil, signers.Errorf(500, signers.ErrorTypeInternalError, "Could not compile regular expression for identifier: %s", err.Error())
+	}
+
 	return &SearchSigner{
 		Digester: &signers.Digester{
 			Digest: digest,
@@ -106,6 +111,9 @@ func (v *SearchSigner) GenerateAuthorization(req *http.Request, authHeaders map[
 	return fmt.Sprintf("Search GenerateAuthorization"), nil
 }
 
+func (v *SearchSigner) GetIdentificationRegex() *regexp.Regexp {
+	return v.IdRegex
+}
 
 /*
 func addCookiestoRequest() {

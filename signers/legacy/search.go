@@ -43,7 +43,6 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 	var path_and_query string
 	var request_time int64
     request_time = time.Now().Unix()
-    nonce = getNonce()
 
     // get acquia_solr_time
     acquia_solr_time, err := r.Cookie("acquia_solr_time")

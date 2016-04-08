@@ -51,24 +51,24 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
     if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: %s", err.Error())
 	}
-	logger.Print("acquia_solr_time" + acquia_solr_time)
+	logger.Print("acquia_solr_time" + acquia_solr_time.Value)
     
     // get acquia_solr_nonce
     acquia_solr_nonce, err := r.Cookie("acquia_solr_nonce")
     if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: %s", err.Error())
 	}
-	logger.Print("acquia_solr_nonce" + acquia_solr_nonce)
+	logger.Print("acquia_solr_nonce" + acquia_solr_nonce.Value)
 
     // get acquia_solr_hmac
     acquia_solr_hmac, err := r.Cookie("acquia_solr_hmac")
     if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: %s", err.Error())
 	}
-	logger.Print("acquia_solr_hmac" + acquia_solr_hmac)
+	logger.Print("acquia_solr_hmac" + acquia_solr_hmac.Value)
 
 	// Check if request time is more than fifteen minutes before or after current time
-	timestamp, err := strconv.ParseInt(acquia_solr_time, 10, 64)
+	timestamp, err := strconv.ParseInt(acquia_solr_time.Value, 10, 64)
 	if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Timestamp parse error: %s", err.Error())
 	}
@@ -95,7 +95,7 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
         logger.Print("Path and Query: " + path_and_query)
     }
 
-    if hash != acquia_solr_hmac {
+    if hash != acquia_solr_hmac.Value {
     	return signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Hash in acquia_solr_hmac does not match expected value")
     }
     // All checks passed, request is authorized

@@ -19,7 +19,7 @@ var logger = log.New(os.Stdout, "", log.LstdFlags)
 type SearchSigner struct {
 	*signers.Digester
 	*signers.Identifiable
-	//respSigner *SearchResponseSigner
+	respSigner *SearchResponseSigner
 }
 
 func NewSearchSigner(digest func() hash.Hash) (*SearchSigner, *signers.AuthenticationError) {
@@ -47,21 +47,21 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
     nonce = getNonce()
 
     // get acquia_solr_time
-    acquia_solr_time, err := r.Cookie("acquia_solr_time").Value
+    acquia_solr_time, err := r.Cookie("acquia_solr_time")
     if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: %s", err.Error())
 	}
 	logger.Print("acquia_solr_time" + acquia_solr_time)
     
     // get acquia_solr_nonce
-    acquia_solr_nonce, err := r.Cookie("acquia_solr_nonce").Value
+    acquia_solr_nonce, err := r.Cookie("acquia_solr_nonce")
     if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: %s", err.Error())
 	}
 	logger.Print("acquia_solr_nonce" + acquia_solr_nonce)
 
     // get acquia_solr_hmac
-    acquia_solr_hmac, err := r.Cookie("acquia_solr_hmac").Value
+    acquia_solr_hmac, err := r.Cookie("acquia_solr_hmac")
     if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: %s", err.Error())
 	}
@@ -81,7 +81,7 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 
 	// Request method determines what we hash
     if r.Method == "POST" {
-		body, err := signers.ReadBody(req)
+		body, err := signers.ReadBody(r)
 		if err != nil {
 			return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
 		}
@@ -102,6 +102,7 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
     return nil
 }
 
+/*
 func addCookiestoRequest() {
     r.AddCookie(&http.Cookie{Name: "acquia_solr_time", Value: strconv.FormatInt(request_time, 10)})
     logger.Print("request_time: " + strconv.FormatInt(request_time, 10))
@@ -110,6 +111,7 @@ func addCookiestoRequest() {
     r.AddCookie(&http.Cookie{Name: "acquia_solr_hmac", Value: hash})
     logger.Print("hash: " + hash)
 }
+*/
 
 func getNonce() (string) {
 	//var char_list = []byte(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}")

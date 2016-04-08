@@ -3,7 +3,6 @@ package legacy
 import (
 	"crypto/hmac"
 	"crypto/sha1"
-	"encoding/base64"
 	"encoding/hex"
 	"github.com/acquia/http-hmac-go/signers"
 	//"github.com/dchest/uniuri"
@@ -20,7 +19,7 @@ var logger = log.New(os.Stdout, "", log.LstdFlags)
 type SearchSigner struct {
 	*signers.Digester
 	*signers.Identifiable
-	respSigner *SearchResponseSigner
+	//respSigner *SearchResponseSigner
 }
 
 func NewSearchSigner(digest func() hash.Hash) (*SearchSigner, *signers.AuthenticationError) {

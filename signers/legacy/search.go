@@ -42,7 +42,6 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 	var hash string
 	var path_and_query string
 	var request_time int64
-	var nonce string
     request_time = time.Now().Unix()
     nonce = getNonce()
 

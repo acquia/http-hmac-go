@@ -35,7 +35,7 @@ func NewSearchSigner(digest func() hash.Hash) (*SearchSigner, *signers.Authentic
 			Digest: digest,
 		},
 		Identifiable: &signers.Identifiable{
-			IdRegex: nil,
+			IdRegex: re,
 		},
 		respSigner: NewSearchResponseSigner(digest),
 	}, nil

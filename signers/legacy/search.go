@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 	"github.com/acquia/http-hmac-go/signers"
 	//"github.com/dchest/uniuri"
 	"hash"
@@ -99,6 +100,12 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
     // All checks passed, request is authorized
     return nil
 }
+
+func (v *SearchSigner) GenerateAuthorization(req *http.Request, authHeaders map[string]string, signature string) (string, *signers.AuthenticationError) {
+	//TODO: this function was added because signers.Signer requires it
+	return fmt.Sprintf("Search GenerateAuthorization"), nil
+}
+
 
 /*
 func addCookiestoRequest() {

@@ -98,13 +98,13 @@ func (v *SearchSigner) Sign(req *http.Request, authHeaders map[string]string, se
 }
 
 
-func ParseAuthHeaders(r *http.Request) map[string]string {
+func (v *SearchSigner) ParseAuthHeaders(r *http.Request) map[string]string {
 
 	auth_headers := map[string]string{}
 	auth_fields := []string {
 		"acquia_solr_time",
 		"acquia_solr_nonce",
-		"acquia_solr_hmac"
+		"acquia_solr_hmac",
 	}
 
 	for index, field_name := range auth_fields {
@@ -112,7 +112,7 @@ func ParseAuthHeaders(r *http.Request) map[string]string {
 	    if err != nil {
 			logger.Print("Error retrieving [%s]", field_name)
 		}
-		auth_headers[field_name] := auth_cookie.Value
+		auth_headers[field_name] = auth_cookie.Value
 		logger.Print("[%s]: [%s]", field_name, auth_cookie.Value)
     }
     return auth_headers

@@ -54,24 +54,25 @@ func (v *SearchSigner) GetResponseSigner() signers.ResponseSigner {
 	return v.respSigner
 }
 
-func (v *SearchSigner) Sign(req *http.Request, authHeaders map[string]string, secret string) (string, *signers.AuthenticationError) {
+func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secret string) (string, *signers.AuthenticationError) {
 
 	var hash string
 	var path_and_query string
 	var secret_key string
 	var request_time int64
 	var nonce string
+	var core_name string
 
 	// get / validate headers
-	auth_headers := ParseAuthHeaders(req)
+	auth_headers := ParseAuthHeaders(r)
     if auth_headers["acquia_solr_time"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time", err.Error())
+		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time")
     }
     if auth_headers["acquia_solr_nonce"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_nonce", err.Error())
+		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_nonce")
     }
     if auth_headers["acquia_solr_hmac"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_hmac", err.Error())
+		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_hmac")
     }
 
 	// core name is second part of path
@@ -124,7 +125,7 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 	var request_time int64
     request_time = time.Now().Unix()
 
-	auth_headers := ParseAuthHeaders(req)
+	auth_headers := ParseAuthHeaders(r)
 
     if auth_headers["acquia_solr_time"] == "" {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time", err.Error())
@@ -213,7 +214,7 @@ func getSecretKey (core_name string) {
 	return secret_key
 }
 
-func (v *SearchSigner) GenerateAuthorization(req *http.Request, authHeaders map[string]string, signature string) (string, *signers.AuthenticationError) {
+func (v *SearchSigner) GenerateAuthorization(r *http.Request, authHeaders map[string]string, signature string) (string, *signers.AuthenticationError) {
 	//TODO: this function was added because signers.Signer requires it
 	return fmt.Sprintf("Search GenerateAuthorization"), nil
 }

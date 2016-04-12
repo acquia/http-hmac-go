@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/acquia/http-hmac-go/signers"
 	"hash"
-	"ioutil"
+	"io/ioutil"
 	"log"
 	"os"
 	"net/http"

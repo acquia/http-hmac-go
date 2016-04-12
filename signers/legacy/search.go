@@ -1,13 +1,14 @@
 package legacy
 
 import (
+	"base64"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
 	"github.com/acquia/http-hmac-go/signers"
-	//"github.com/dchest/uniuri"
 	"hash"
+	"ioutil"
 	"log"
 	"os"
 	"net/http"
@@ -50,6 +51,12 @@ func (v *SearchSigner) HashBody(req *http.Request) (string, *signers.Authenticat
 	return v.HashBytes(data), nil
 }
 
+func (v *SearchSigner) HashBytes(b []byte) string {
+	h := sha256.New()
+	h.Write(b)
+	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
+
 func (v *SearchSigner) GetResponseSigner() signers.ResponseSigner {
 	return v.respSigner
 }
@@ -66,13 +73,13 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 	// get / validate headers
 	auth_headers := ParseAuthHeaders(r)
     if auth_headers["acquia_solr_time"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time")
+		return "", signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time")
     }
     if auth_headers["acquia_solr_nonce"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_nonce")
+		return "", signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_nonce")
     }
     if auth_headers["acquia_solr_hmac"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_hmac")
+		return "", signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_hmac")
     }
 
 	// core name is second part of path
@@ -83,7 +90,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 
 	body, err := ioutil.ReadAll(r.Body)
     if err != nil {
-		return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
+		return "", signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
     }
 
     if r.Method == "POST" {
@@ -95,7 +102,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
         logger.Print("Path and Query: " + path_and_query)
     }
 
-    return hash
+    return hash, nil
 }
 
 
@@ -128,13 +135,13 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 	auth_headers := ParseAuthHeaders(r)
 
     if auth_headers["acquia_solr_time"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time", err.Error())
+		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time")
     }
     if auth_headers["acquia_solr_nonce"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_nonce", err.Error())
+		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_nonce")
     }
     if auth_headers["acquia_solr_hmac"] == "" {
-		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_hmac", err.Error())
+		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_hmac")
     }
 
 	// Check if request time is more than fifteen minutes before or after current time
@@ -208,7 +215,7 @@ func (v *SearchSigner) SignDirect(req *http.Request, authHeaders map[string]stri
 
 }
 
-func getSecretKey (core_name string) {
+func getSecretKey (core_name string) (string) {
 	var secret_key string
 	secret_key = "not-a-real-key"
 	return secret_key
@@ -224,6 +231,7 @@ func (v *SearchSigner) GetIdentificationRegex() *regexp.Regexp {
 }
 
 func getNonce() (string) {
+	//"github.com/dchest/uniuri"
 	//var char_list = []byte(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}")
 	//TODO: base64 encode before returning
 	//return NewLenChars(24, char_list)

@@ -67,7 +67,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 	var path_and_query string
 	var secret_key string
 	var request_time int64
-	var nonce string
+	//var nonce string
 	var core_name string
 
 	// get / validate headers
@@ -86,7 +86,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 	core_name = strings.Split(r.URL.Path, "/")[1]
 	secret_key = getSecretKey(core_name)
     request_time = time.Now().Unix()
-    nonce = getNonce()
+    //nonce = getNonce()
 
 	body, err := ioutil.ReadAll(r.Body)
     if err != nil {
@@ -115,7 +115,7 @@ func (v *SearchSigner) ParseAuthHeaders(r *http.Request) map[string]string {
 		"acquia_solr_hmac",
 	}
 
-	for index, field_name := range auth_fields {
+	for _, field_name := range auth_fields {
 	    auth_cookie, err := r.Cookie(field_name)
 	    if err != nil {
 			logger.Print("Error retrieving [%s]", field_name)

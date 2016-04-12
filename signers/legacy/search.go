@@ -3,7 +3,6 @@ package legacy
 import (
 	"crypto/hmac"
 	"crypto/sha1"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/acquia/http-hmac-go/signers"
@@ -55,7 +54,7 @@ func (v *SearchSigner) HashBytes(b []byte) string {
 	//h := sha256.New()
 	//h.Write(b)
 	//return base64.StdEncoding.EncodeToString(h.Sum(nil))
-	return nil
+	return ""
 }
 
 func (v *SearchSigner) GetResponseSigner() signers.ResponseSigner {
@@ -214,6 +213,8 @@ func (v *SearchSigner) SignDirect(r *http.Request, authHeaders map[string]string
     r.AddCookie(&http.Cookie{Name: "acquia_solr_hmac", Value: hash})
     logger.Print("hash: " + hash)
 
+    return nil
+
 }
 
 func getSecretKey (core_name string) (string) {
@@ -228,7 +229,7 @@ func (v *SearchSigner) GenerateAuthorization(r *http.Request, authHeaders map[st
 }
 
 func (v *SearchSigner) GetIdentificationRegex() *regexp.Regexp {
-	return v.IdRegex5
+	return v.IdRegex
 }
 
 func getNonce() (string) {

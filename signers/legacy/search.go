@@ -43,8 +43,8 @@ func NewSearchSigner(digest func() hash.Hash) (*SearchSigner, *signers.Authentic
 	}, nil
 }
 
-func (v *SearchSigner) HashBody(req *http.Request) (string, *signers.AuthenticationError) {
-	data, err := signers.ReadBody(req)
+func (v *SearchSigner) HashBody(r *http.Request) (string, *signers.AuthenticationError) {
+	data, err := signers.ReadBody(r)
 	if err != nil {
 		return "", signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
 	}
@@ -52,9 +52,10 @@ func (v *SearchSigner) HashBody(req *http.Request) (string, *signers.Authenticat
 }
 
 func (v *SearchSigner) HashBytes(b []byte) string {
-	h := sha256.New()
-	h.Write(b)
-	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+	//h := sha256.New()
+	//h.Write(b)
+	//return base64.StdEncoding.EncodeToString(h.Sum(nil))
+	return nil
 }
 
 func (v *SearchSigner) GetResponseSigner() signers.ResponseSigner {
@@ -161,8 +162,7 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 		body, err := signers.ReadBody(r)
 		if err != nil {
 			return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
-		}
-		// 
+		} 
 	    hash = generateSignature(string(body), request_time, secret)
 	    logger.Print("body: " + string(body))
 
@@ -179,13 +179,14 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
     return nil
 }
 
-func (v *SearchSigner) SignDirect(req *http.Request, authHeaders map[string]string, secret string) *signers.AuthenticationError {
+func (v *SearchSigner) SignDirect(r *http.Request, authHeaders map[string]string, secret string) *signers.AuthenticationError {
 
 	var hash string
 	var path_and_query string
 	var secret_key string
 	var request_time int64
 	var nonce string
+	var core_name string
 
 	// core name is second part of path
 	core_name = strings.Split(r.URL.Path, "/")[1]

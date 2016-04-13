@@ -227,8 +227,8 @@ func getNonce() (string) {
 	return "ABCDEFGHIJKLMNOPQRSTUVWX"
 }
 
-func generateSignature(content string, request_time int64, secret string) (string) {
-	data := strconv.FormatInt(request_time, 10) + getNonce() + content;
+func generateSignature(content string, request_time string, secret string) (string) {
+	data := request_time + getNonce() + content;
     key := []byte(secret)                                                        
 	h := hmac.New(sha1.New, key)                                                    
 	h.Write([]byte(data))                                                    

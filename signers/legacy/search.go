@@ -186,7 +186,6 @@ func (v *SearchSigner) SignDirect(r *http.Request, authHeaders map[string]string
 
 	// core name is second part of path
 	core_name = strings.Split(r.URL.Path, "/")[1]
-	secret_key = getSecretKey(core_name)
 	request_time = time.Now().Unix()
 	nonce = getNonce()
 	body, err := ioutil.ReadAll(r.Body)
@@ -195,11 +194,11 @@ func (v *SearchSigner) SignDirect(r *http.Request, authHeaders map[string]string
 	}
 
     if r.Method == "POST" {
-	    hash = generateSignature(string(body), request_time, secret_key)
+	    hash = generateSignature(string(body), request_time, secret)
 	    logger.Print("body: " + string(body))
     } else {
         path_and_query = r.URL.Path + "?" + r.URL.RawQuery;
-        hash = generateSignature(path_and_query, request_time, secret_key);
+        hash = generateSignature(path_and_query, request_time, secret);
         logger.Print("Path and Query: " + path_and_query)
     }
 
@@ -238,9 +237,4 @@ func generateSignature(content string, request_time int64, secret string) (strin
 	h.Write([]byte(data))                                                    
 	hmac_string := hex.EncodeToString(h.Sum(nil))
 	return hmac_string
-}
-
-
-func (v *SearchSigner) GetResponseSigner() signers.ResponseSigner {
-	return v.respSigner
 }

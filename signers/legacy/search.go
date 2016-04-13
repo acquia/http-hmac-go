@@ -141,14 +141,14 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
     }
 
 	// Check if request time is more than fifteen minutes before or after current time
-	timestamp, err := strconv.ParseInt(auth_headers["acquia_solr_time"], 10, 64)
+	request_timestamp, err := strconv.ParseInt(auth_headers["acquia_solr_time"], 10, 64)
 	if err != nil {
 		return signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Timestamp parse error: %s", err.Error())
 	}
-	if timestamp > signers.Now().Unix()+900 {
+	if request_timestamp > signers.Now().Unix()+900 {
 		return signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the future.", timestamp)
 	}
-	if timestamp < signers.Now().Unix()-900 {
+	if request_timestamp < signers.Now().Unix()-900 {
 		return signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the past.", timestamp)
 	}
 
@@ -158,12 +158,12 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 		if err != nil {
 			return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
 		} 
-	    hash = generateSignature(string(body), auth_headers["acquia_solr_time"], secret)
+	    hash = generateSignature(string(body), request_timestamp, secret)
 	    logger.Print("body: " + string(body))
 
     } else {
         path_and_query = r.URL.Path + "?" + r.URL.RawQuery
-        hash = generateSignature(path_and_query, auth_headers["acquia_solr_time"], secret)
+        hash = generateSignature(path_and_query, request_timestamp, secret)
         logger.Print("Path and Query: " + path_and_query)
     }
 
@@ -227,8 +227,8 @@ func getNonce() (string) {
 	return "ABCDEFGHIJKLMNOPQRSTUVWX"
 }
 
-func generateSignature(content string, request_time string, secret string) (string) {
-	data := request_time + getNonce() + content;
+func generateSignature(content string, request_time int64, secret string) (string) {
+	data := strconv.FormatInt(request_time, 10) + getNonce() + content;
     key := []byte(secret)                                                        
 	h := hmac.New(sha1.New, key)                                                    
 	h.Write([]byte(data))                                                    

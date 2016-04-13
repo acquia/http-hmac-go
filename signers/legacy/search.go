@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/acquia/http-hmac-go/signers"
+	"github.com/acquia/http-hmac-go/signers/cci-search-key"
 	"hash"
 	"io/ioutil"
 	"log"
@@ -83,8 +84,8 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
     }
 
 	// core name is second part of path
-	core_name = strings.Split(r.URL.Path, "/")[1]
-	secret_key = getSecretKey(core_name)
+	core_name = strings.Split(r.URL.Path, "/")[2]
+	secret_key = cciSearchKey.GetDerivedKey(core_name)
     request_time = time.Now().Unix()
     //nonce = getNonce()
 
@@ -107,7 +108,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 
 
 func (v *SearchSigner) ParseAuthHeaders(r *http.Request) map[string]string {
-
+	logger.Print("Parsing Auth Headers")
 	auth_headers := map[string]string{}
 	auth_fields := []string {
 		"acquia_solr_time",
@@ -127,11 +128,11 @@ func (v *SearchSigner) ParseAuthHeaders(r *http.Request) map[string]string {
 }
 
 func (v *SearchSigner) Check(r *http.Request, secret string) *signers.AuthenticationError {
+	logger.Print("SearchSigner Check")
 	var hash string
 	var path_and_query string
 	var request_time int64
     request_time = time.Now().Unix()
-
 	auth_headers := ParseAuthHeaders(r)
 
     if auth_headers["acquia_solr_time"] == "" {
@@ -217,12 +218,6 @@ func (v *SearchSigner) SignDirect(r *http.Request, authHeaders map[string]string
 
 }
 
-func getSecretKey (core_name string) (string) {
-	var secret_key string
-	secret_key = "not-a-real-key"
-	return secret_key
-}
-
 func (v *SearchSigner) GenerateAuthorization(r *http.Request, authHeaders map[string]string, signature string) (string, *signers.AuthenticationError) {
 	//TODO: this function was added because signers.Signer requires it
 	return fmt.Sprintf("Search GenerateAuthorization"), nil
@@ -247,4 +242,9 @@ func generateSignature(content string, request_time int64, secret string) (strin
 	h.Write([]byte(data))                                                    
 	hmac_string := hex.EncodeToString(h.Sum(nil))
 	return hmac_string
+}
+
+
+func (v *SearchSigner) GetResponseSigner() signers.ResponseSigner {
+	return v.respSigner
 }

@@ -119,7 +119,7 @@ func ParseAuthHeadersSearch(r *http.Request) map[string]string {
 }
 
 func (v *SearchSigner) ParseAuthHeaders(req *http.Request) map[string]string {
-	return parseAuthHeadersSearch(req)
+	return ParseAuthHeadersSearch(req)
 }
 
 func (v *SearchSigner) Check(r *http.Request, secret string) *signers.AuthenticationError {

@@ -54,7 +54,7 @@ func ParseAuthHeadersDice(req *http.Request) map[string]string {
 }
 
 func (v *V2SignerDiceLegacy) ParseAuthHeaders(req *http.Request) map[string]string {
-	return parseAuthHeadersDice(req)
+	return ParseAuthHeadersDice(req)
 }
 
 func NewV2SignerDiceLegacy(digest func() hash.Hash) (*V2SignerDiceLegacy, *signers.AuthenticationError) {

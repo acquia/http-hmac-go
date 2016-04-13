@@ -16,8 +16,7 @@ import (
 	"time"
 )
 
-var logger = log.New(os.Stdout, "", log.LstdFlags)
-logger.SetFlags(log.LstdFlags | log.Lshortfile)
+var logger = log.New(os.Stdout, "", log.LstdFlags | log.Lshortfile)
 
 type SearchSigner struct {
 	*signers.Digester

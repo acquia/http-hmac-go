@@ -79,8 +79,6 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 		return "", signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_hmac")
     }
 
-	// core name is second part of path
-	core_name = strings.Split(r.URL.Path, "/")[2]
     request_time = time.Now().Unix()
 
 	body, err := ioutil.ReadAll(r.Body)

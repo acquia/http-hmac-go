@@ -26,7 +26,7 @@ func EscapeProper(s string) string {
 	return strings.Replace(url.QueryEscape(s), "+", "%20", -1)
 }
 
-func ParseAuthHeaders(req *http.Request) map[string]string {
+func (v *V2SignerDiceLegacy) ParseAuthHeaders(req *http.Request) map[string]string {
 	auth := req.Header.Get("Authorization")
 	ret := map[string]string{}
 	s1 := strings.SplitN(auth, " ", 2)
@@ -51,10 +51,6 @@ func ParseAuthHeaders(req *http.Request) map[string]string {
 		ret[k] = qu
 	}
 	return ret
-}
-
-func (v *V2SignerDiceLegacy) ParseAuthHeaders(req *http.Request) map[string]string {
-	return ParseAuthHeaders(req)
 }
 
 func NewV2SignerDiceLegacy(digest func() hash.Hash) (*V2SignerDiceLegacy, *signers.AuthenticationError) {

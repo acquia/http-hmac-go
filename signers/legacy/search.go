@@ -65,9 +65,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 
 	var hash string
 	var path_and_query string
-	var secret_key string
 	var request_time int64
-	var core_name string
 
 	// get / validate headers
 	auth_headers := ParseAuthHeaders(r)
@@ -179,13 +177,9 @@ func (v *SearchSigner) SignDirect(r *http.Request, authHeaders map[string]string
 
 	var hash string
 	var path_and_query string
-	var secret_key string
 	var request_time int64
 	var nonce string
-	var core_name string
 
-	// core name is second part of path
-	core_name = strings.Split(r.URL.Path, "/")[1]
 	request_time = time.Now().Unix()
 	nonce = getNonce()
 	body, err := ioutil.ReadAll(r.Body)

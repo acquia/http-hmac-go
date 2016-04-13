@@ -67,7 +67,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 	var request_time int64
 
 	// get / validate headers
-	auth_headers := ParseAuthHeaders(r)
+	auth_headers := v.ParseAuthHeaders(r)
     if auth_headers["acquia_solr_time"] == "" {
 		return "", signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time")
     }
@@ -98,7 +98,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 }
 
 
-func (v *SearchSigner) ParseAuthHeaders(r *http.Request) map[string]string {
+func ParseAuthHeadersSearch(r *http.Request) map[string]string {
 	logger.Print("Parsing Auth Headers")
 	auth_headers := map[string]string{}
 	auth_fields := []string {
@@ -118,13 +118,17 @@ func (v *SearchSigner) ParseAuthHeaders(r *http.Request) map[string]string {
     return auth_headers
 }
 
+func (v *SearchSigner) ParseAuthHeaders(req *http.Request) map[string]string {
+	return parseAuthHeadersSearch(req)
+}
+
 func (v *SearchSigner) Check(r *http.Request, secret string) *signers.AuthenticationError {
 	logger.Print("SearchSigner Check")
 	var hash string
 	var path_and_query string
 	var request_time int64
     request_time = time.Now().Unix()
-	auth_headers := ParseAuthHeaders(r)
+	auth_headers := v.ParseAuthHeaders(r)
 
     if auth_headers["acquia_solr_time"] == "" {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required cookie: acquia_solr_time")

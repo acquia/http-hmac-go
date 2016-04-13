@@ -32,7 +32,7 @@ func (v *V2DiceLegacyResponseSigner) CreateSignable(req *http.Request, authHeade
 }
 
 func (v *V2DiceLegacyResponseSigner) SignResponse(req *http.Request, rw *signers.SignableResponseWriter, secret string) (string, *signers.AuthenticationError) {
-	authHeaders := ParseAuthHeaders(req)
+	authHeaders := ParseAuthHeadersDice(req)
 	if _, ok := authHeaders["nonce"]; !ok {
 		return "", signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Nonce must be present in authentication headers.")
 	}

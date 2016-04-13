@@ -9,8 +9,6 @@ import (
 	"net/http"
 )
 
-var logger = log.New(os.Stdout, "", log.LstdFlags | log.Lshortfile)
-
 type SearchResponseSigner struct {
 	*signers.Digester
 }
@@ -34,7 +32,6 @@ func (v *SearchResponseSigner) CreateSignable(req *http.Request, authHeaders map
 }
 
 func (v *SearchResponseSigner) SignResponse(req *http.Request, rw *signers.SignableResponseWriter, secret string) (string, *signers.AuthenticationError) {
-	logger.Print(Signing Response)
 	authHeaders := ParseAuthHeadersSearch(req)
 	if _, ok := authHeaders["nonce"]; !ok {
 		return "", signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Nonce must be present in authentication headers.")

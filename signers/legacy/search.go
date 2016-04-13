@@ -126,8 +126,8 @@ func (v *SearchSigner) ParseAuthHeaders(req *http.Request) map[string]string {
 func (v *SearchSigner) Check(r *http.Request, secret string) *signers.AuthenticationError {
 	var hash string
 	var path_and_query string
-	var request_time int64
-    request_time = time.Now().Unix()
+	//var request_time int64
+    //request_time = time.Now().Unix()
 	auth_headers := v.ParseAuthHeaders(r)
 
     if auth_headers["acquia_solr_time"] == "" {
@@ -158,12 +158,12 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 		if err != nil {
 			return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
 		} 
-	    hash = generateSignature(string(body), request_time, secret)
+	    hash = generateSignature(string(body), auth_headers["acquia_solr_time"], secret)
 	    logger.Print("body: " + string(body))
 
     } else {
         path_and_query = r.URL.Path + "?" + r.URL.RawQuery
-        hash = generateSignature(path_and_query, request_time, secret)
+        hash = generateSignature(path_and_query, auth_headers["acquia_solr_time"], secret)
         logger.Print("Path and Query: " + path_and_query)
     }
 

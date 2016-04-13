@@ -168,6 +168,8 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
     }
 
     if hash != auth_headers["acquia_solr_hmac"] {
+		logger.Print("Expected: ", hash)
+		logger.Print("Received: ", auth_headers["acquia_solr_hmac"])
     	return signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Hash in acquia_solr_hmac does not match expected value")
     }
     // All checks passed, request is authorized

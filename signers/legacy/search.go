@@ -17,6 +17,7 @@ import (
 )
 
 var logger = log.New(os.Stdout, "", log.LstdFlags)
+logger.SetFlags(log.LstdFlags | log.Lshortfile)
 
 type SearchSigner struct {
 	*signers.Digester
@@ -41,6 +42,7 @@ func NewSearchSigner(digest func() hash.Hash) (*SearchSigner, *signers.Authentic
 	}, nil
 }
 
+// This is not used, required by the interface
 func (v *SearchSigner) HashBody(r *http.Request) (string, *signers.AuthenticationError) {
 	data, err := signers.ReadBody(r)
 	if err != nil {
@@ -49,6 +51,7 @@ func (v *SearchSigner) HashBody(r *http.Request) (string, *signers.Authenticatio
 	return v.HashBytes(data), nil
 }
 
+// This is not used, required by the interface
 func (v *SearchSigner) HashBytes(b []byte) string {
 	//h := sha256.New()
 	//h.Write(b)
@@ -91,7 +94,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
     } else {
         path_and_query = r.URL.Path + "?" + r.URL.RawQuery;
         hash = generateSignature(path_and_query, request_time, secret);
-        logger.Print("Path and Query: " + path_and_query)
+        logger.Print("Path Requested: " + path_and_query)
     }
 
     return hash, nil
@@ -99,7 +102,6 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 
 
 func ParseAuthHeadersSearch(r *http.Request) map[string]string {
-	logger.Print("Parsing Auth Headers")
 	auth_headers := map[string]string{}
 	auth_fields := []string {
 		"acquia_solr_time",
@@ -113,7 +115,7 @@ func ParseAuthHeadersSearch(r *http.Request) map[string]string {
 			logger.Print("Error retrieving [%s]", field_name)
 		}
 		auth_headers[field_name] = auth_cookie.Value
-		logger.Print("[%s]: [%s]", field_name, auth_cookie.Value)
+		logger.Print(field_name, ": ", auth_cookie.Value)
     }
     return auth_headers
 }
@@ -123,7 +125,6 @@ func (v *SearchSigner) ParseAuthHeaders(req *http.Request) map[string]string {
 }
 
 func (v *SearchSigner) Check(r *http.Request, secret string) *signers.AuthenticationError {
-	logger.Print("SearchSigner Check")
 	var hash string
 	var path_and_query string
 	var request_time int64

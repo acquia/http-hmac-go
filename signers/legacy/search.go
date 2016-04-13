@@ -146,10 +146,10 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 		return signers.Errorf(403, signers.ErrorTypeInvalidRequiredHeader, "Timestamp parse error: %s", err.Error())
 	}
 	if request_timestamp > signers.Now().Unix()+900 {
-		return signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the future.", timestamp)
+		return signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the future.", request_timestamp)
 	}
 	if request_timestamp < signers.Now().Unix()-900 {
-		return signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the past.", timestamp)
+		return signers.Errorf(403, signers.ErrorTypeTimestampRangeError, "Timestamp given in X-Authorization-Timestamp (%d) was too far in the past.", request_timestamp)
 	}
 
 	// Request method determines what we hash

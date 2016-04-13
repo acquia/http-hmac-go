@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/acquia/http-hmac-go/signers"
-	"github.com/acquia/http-hmac-go/signers/cci-search-key"
 	"hash"
 	"io/ioutil"
 	"log"
@@ -68,7 +67,6 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 	var path_and_query string
 	var secret_key string
 	var request_time int64
-	//var nonce string
 	var core_name string
 
 	// get / validate headers
@@ -85,9 +83,7 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 
 	// core name is second part of path
 	core_name = strings.Split(r.URL.Path, "/")[2]
-	secret_key = cciSearchKey.GetDerivedKey(core_name)
     request_time = time.Now().Unix()
-    //nonce = getNonce()
 
 	body, err := ioutil.ReadAll(r.Body)
     if err != nil {
@@ -95,11 +91,11 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
     }
 
     if r.Method == "POST" {
-	    hash = generateSignature(string(body), request_time, secret_key)
+	    hash = generateSignature(string(body), request_time, secret)
 	    logger.Print("body: " + string(body))
     } else {
         path_and_query = r.URL.Path + "?" + r.URL.RawQuery;
-        hash = generateSignature(path_and_query, request_time, secret_key);
+        hash = generateSignature(path_and_query, request_time, secret);
         logger.Print("Path and Query: " + path_and_query)
     }
 

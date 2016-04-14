@@ -111,10 +111,11 @@ func ParseAuthHeadersSearch(r *http.Request) map[string]string {
 	for _, field_name := range auth_fields {
 	    auth_cookie, err := r.Cookie(field_name)
 	    if err != nil {
-			logger.Print("Error retrieving [%s]", field_name)
+			logger.Print("Error retrieving:", field_name)
+		} else {
+			auth_headers[field_name] = auth_cookie.Value
+			logger.Print(field_name, ": ", auth_cookie.Value)
 		}
-		auth_headers[field_name] = auth_cookie.Value
-		logger.Print(field_name, ": ", auth_cookie.Value)
     }
     return auth_headers
 }

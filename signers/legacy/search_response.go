@@ -9,19 +9,19 @@ import (
 	"net/http"
 )
 
-type V2DiceLegacyResponseSigner struct {
+type SearchResponseSigner struct {
 	*signers.Digester
 }
 
-func NewV2DiceLegacyResponseSigner(digest func() hash.Hash) *V2DiceLegacyResponseSigner {
-	return &V2DiceLegacyResponseSigner{
+func NewSearchResponseSigner(digest func() hash.Hash) *SearchResponseSigner {
+	return &SearchResponseSigner{
 		Digester: &signers.Digester{
 			Digest: digest,
 		},
 	}
 }
 
-func (v *V2DiceLegacyResponseSigner) CreateSignable(req *http.Request, authHeaders map[string]string, rw *signers.SignableResponseWriter) []byte {
+func (v *SearchResponseSigner) CreateSignable(req *http.Request, authHeaders map[string]string, rw *signers.SignableResponseWriter) []byte {
 	var b bytes.Buffer
 	b.WriteString(authHeaders["nonce"])
 	b.WriteString("\n")
@@ -31,8 +31,8 @@ func (v *V2DiceLegacyResponseSigner) CreateSignable(req *http.Request, authHeade
 	return b.Bytes()
 }
 
-func (v *V2DiceLegacyResponseSigner) SignResponse(req *http.Request, rw *signers.SignableResponseWriter, secret string) (string, *signers.AuthenticationError) {
-	authHeaders := ParseAuthHeadersDice(req)
+func (v *SearchResponseSigner) SignResponse(req *http.Request, rw *signers.SignableResponseWriter, secret string) (string, *signers.AuthenticationError) {
+	authHeaders := ParseAuthHeadersSearch(req)
 	if _, ok := authHeaders["nonce"]; !ok {
 		return "", signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Nonce must be present in authentication headers.")
 	}
@@ -50,7 +50,7 @@ func (v *V2DiceLegacyResponseSigner) SignResponse(req *http.Request, rw *signers
 	return base64.StdEncoding.EncodeToString(hsm), nil
 }
 
-func (v *V2DiceLegacyResponseSigner) SignResponseDirect(req *http.Request, rw *signers.SignableResponseWriter, secret string) *signers.AuthenticationError {
+func (v *SearchResponseSigner) SignResponseDirect(req *http.Request, rw *signers.SignableResponseWriter, secret string) *signers.AuthenticationError {
 	rsig, err := v.SignResponse(req, rw, secret)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func (v *V2DiceLegacyResponseSigner) SignResponseDirect(req *http.Request, rw *s
 	return nil
 }
 
-func (v *V2DiceLegacyResponseSigner) Check(req *http.Request, resp *http.Response, secret string) *signers.AuthenticationError {
+func (v *SearchResponseSigner) Check(req *http.Request, resp *http.Response, secret string) *signers.AuthenticationError {
 	got := resp.Header.Get("X-Server-Authorization-HMAC-SHA256")
 	if got == "" {
 		return signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Signature missing from response.")
@@ -79,6 +79,6 @@ func (v *V2DiceLegacyResponseSigner) Check(req *http.Request, resp *http.Respons
 	return nil
 }
 
-func (v *V2DiceLegacyResponseSigner) SetTrailer(rw http.ResponseWriter) {
+func (v *SearchResponseSigner) SetTrailer(rw http.ResponseWriter) {
 	rw.Header().Add("Trailer", "X-Server-Authorization-HMAC-SHA256")
 }

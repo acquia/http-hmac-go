@@ -26,7 +26,7 @@ func EscapeProper(s string) string {
 	return strings.Replace(url.QueryEscape(s), "+", "%20", -1)
 }
 
-func ParseAuthHeaders(req *http.Request) map[string]string {
+func ParseAuthHeadersDice(req *http.Request) map[string]string {
 	auth := req.Header.Get("Authorization")
 	ret := map[string]string{}
 	s1 := strings.SplitN(auth, " ", 2)
@@ -54,7 +54,7 @@ func ParseAuthHeaders(req *http.Request) map[string]string {
 }
 
 func (v *V2SignerDiceLegacy) ParseAuthHeaders(req *http.Request) map[string]string {
-	return ParseAuthHeaders(req)
+	return ParseAuthHeadersDice(req)
 }
 
 func NewV2SignerDiceLegacy(digest func() hash.Hash) (*V2SignerDiceLegacy, *signers.AuthenticationError) {
@@ -192,7 +192,7 @@ func (v *V2SignerDiceLegacy) Sign(req *http.Request, authHeaders map[string]stri
 }
 
 func (v *V2SignerDiceLegacy) Check(req *http.Request, secret string) *signers.AuthenticationError {
-	authHeaders := ParseAuthHeaders(req)
+	authHeaders := ParseAuthHeadersDice(req)
 	if req.Header.Get("X-Authorization-Timestamp") == "" {
 		return signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Missing required header X-Authorization-Timestamp.")
 	}

@@ -271,6 +271,11 @@ var Fixtures []*TestFixture = []*TestFixture{
 			"version": "2.0",
 		},
 		SecretKey: "W5PeGMxSItNerkNFqQMfYiJvH14WzVJMy54CPoTAYoI=",
+		Response: &ResponseFixture{
+			Expected: map[string]string{
+				"v2": "LusIUHmqt9NOALrQ4N4MtXZEFE03MjcDjziK+vVqhvQ=",
+			},
+		},
 		ErrorType: map[string]ErrorType{},
 		ExpectedHeader: map[string]string{
 			"v2": `acquia-http-hmac id="efdde334-fe7b-11e4-a322-1697f925ec7b",nonce="d1954337-5319-4821-8427-115542e08d10",realm="Pipet%20service",signature="XDBaXgWFCY3aAgQvXyGXMbw9Vds2WPKJe2yP+1eXQgM=",version="2.0"`,

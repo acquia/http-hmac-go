@@ -299,3 +299,7 @@ func (v *V2Signer) GetIdentificationRegex() *regexp.Regexp {
 func (v *V2Signer) GetResponseSigner() signers.ResponseSigner {
 	return v.respSigner
 }
+
+func (v *V2Signer) Version() int {
+	return 2
+}

@@ -154,3 +154,7 @@ func (v *V1Signer) GetIdentificationRegex() *regexp.Regexp {
 func (v *V1Signer) GetResponseSigner() signers.ResponseSigner {
 	return nil
 }
+
+func (v *V1Signer) Version() int {
+	return 1
+}

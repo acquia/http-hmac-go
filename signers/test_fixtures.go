@@ -275,6 +275,7 @@ var Fixtures []*TestFixture = []*TestFixture{
 			Expected: map[string]string{
 				"v2": "LusIUHmqt9NOALrQ4N4MtXZEFE03MjcDjziK+vVqhvQ=",
 			},
+			Response: PrepareResponseWriter(``),
 		},
 		ErrorType: map[string]ErrorType{},
 		ExpectedHeader: map[string]string{

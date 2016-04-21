@@ -300,3 +300,7 @@ func (v *V2SignerDiceLegacy) GetIdentificationRegex() *regexp.Regexp {
 func (v *V2SignerDiceLegacy) GetResponseSigner() signers.ResponseSigner {
 	return v.respSigner
 }
+
+func (v *V2SignerDiceLegacy) Version() int {
+	return 2
+}

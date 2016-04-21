@@ -49,6 +49,9 @@ type Signer interface {
 	// Does not alter the request.
 	// Does not alter the contents of the request, but req.Body's address may change.
 	GenerateAuthorization(req *http.Request, authHeaders map[string]string, signature string) (string, *AuthenticationError)
+
+	// Returns a version number, or 0 if unknown.
+	Version() int
 }
 
 type ResponseSigner interface {

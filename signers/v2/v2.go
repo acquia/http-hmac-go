@@ -97,20 +97,29 @@ func (v *V2Signer) HashBytes(b []byte) string {
 func (v *V2Signer) CreateSignable(req *http.Request, authHeaders map[string]string, bodyhash string) []byte {
 	var b bytes.Buffer
 
+	// The uppercase HTTP request method e.g. "GET", "POST".
 	method := strings.ToUpper(req.Method)
-
 	b.WriteString(method)
 	b.WriteString("\n")
 
+	// The (lowercase) hostname, matching the HTTP "Host" request header field
+	// (including any port number).
 	b.WriteString(req.Host)
 	b.WriteString("\n")
 
+	// The HTTP request path with leading slash, e.g. /resource/11
 	b.WriteString(signers.Path(req.URL))
 	b.WriteString("\n")
 
-	b.WriteString(strings.Replace(req.URL.Query().Encode(), "+", "%20", -1))
+	// Any query parameters or empty string. This should be the exact string sent
+	// by the client, including urlencoding.
+	b.WriteString(req.URL.RawQuery)
 	b.WriteString("\n")
 
+	// normalized parameters similar to section 9.1.1 of OAuth 1.0a. The
+	// parameters are the id, nonce, realm, and version from the Authorization
+	// header. Parameters are sorted by name and separated by '&' with name and
+	// value separated by =, percent encoded (urlencoded).
 	b.WriteString(v.stringAuthHeaders(authHeaders))
 	b.WriteString("\n")
 
@@ -127,13 +136,19 @@ func (v *V2Signer) CreateSignable(req *http.Request, authHeaders map[string]stri
 		}
 	}
 
+	// The value of the X-Authorization-Timestamp header.
 	b.WriteString(req.Header.Get("X-Authorization-Timestamp"))
 
 	if bodyhash != "" && req.ContentLength > 0 {
 		b.WriteString("\n")
+		// The lowercase value of the "Content-type" header (or empty string if
+		// absent). Omit if Content-Length is 0.
 		b.WriteString(strings.ToLower(req.Header.Get("Content-Type")))
 		b.WriteString("\n")
-
+		// The base64 encoded SHA-256 digest of the raw body of the HTTP request,
+		// for POST, PUT, PATCH, DELETE or other requests that may have a body.
+		// Omit if Content-Length is 0. This should be identical to the string sent
+		// as the X-Authorization-Content-SHA256 header.
 		b.WriteString(bodyhash)
 	}
 

@@ -88,12 +88,10 @@ func (v *SearchSigner) Sign(r *http.Request, authHeaders map[string]string, secr
 	}
 
 	if r.Method == "POST" {
-		hash = generateSignature(string(body), request_time, secret)
-		logger.Print("body: " + string(body))
+		hash = generateSignature(string(body), request_time, secret, auth_headers["acquia_solr_nonce"])
 	} else {
 		path_and_query = r.URL.Path + "?" + r.URL.RawQuery
-		hash = generateSignature(path_and_query, request_time, secret)
-		logger.Print("Path Requested: " + path_and_query)
+		hash = generateSignature(path_and_query, request_time, secret, auth_headers["acquia_solr_nonce"])
 	}
 
 	return hash, nil
@@ -113,7 +111,6 @@ func ParseAuthHeadersSearch(r *http.Request) map[string]string {
 			logger.Print("Error retrieving:", field_name)
 		} else {
 			auth_headers[field_name] = auth_cookie.Value
-			logger.Print(field_name, ": ", auth_cookie.Value)
 		}
 	}
 	return auth_headers
@@ -158,13 +155,11 @@ func (v *SearchSigner) Check(r *http.Request, secret string) *signers.Authentica
 		if err != nil {
 			return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
 		}
-		hash = generateSignature(string(body), request_timestamp, secret)
-		logger.Print("body: " + string(body))
+		hash = generateSignature(string(body), request_timestamp, secret, auth_headers["acquia_solr_nonce"])
 
 	} else {
 		path_and_query = r.URL.Path + "?" + r.URL.RawQuery
-		hash = generateSignature(path_and_query, request_timestamp, secret)
-		logger.Print("Path and Query: " + path_and_query)
+		hash = generateSignature(path_and_query, request_timestamp, secret, auth_headers["acquia_solr_nonce"])
 	}
 
 	if hash != auth_headers["acquia_solr_hmac"] {
@@ -181,30 +176,23 @@ func (v *SearchSigner) SignDirect(r *http.Request, authHeaders map[string]string
 	var hash string
 	var path_and_query string
 	var request_time int64
-	var nonce string
 
 	request_time = time.Now().Unix()
-	nonce = getNonce()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return signers.Errorf(500, signers.ErrorTypeInternalError, "Failed to read request body: %s", err.Error())
 	}
 
 	if r.Method == "POST" {
-		hash = generateSignature(string(body), request_time, secret)
-		logger.Print("body: " + string(body))
+		hash = generateSignature(string(body), request_time, secret, authHeaders["acquia_solr_nonce"])
 	} else {
 		path_and_query = r.URL.Path + "?" + r.URL.RawQuery
-		hash = generateSignature(path_and_query, request_time, secret)
-		logger.Print("Path and Query: " + path_and_query)
+		hash = generateSignature(path_and_query, request_time, secret, authHeaders["acquia_solr_nonce"])
 	}
 
 	r.AddCookie(&http.Cookie{Name: "acquia_solr_time", Value: strconv.FormatInt(request_time, 10)})
-	logger.Print("request_time: " + strconv.FormatInt(request_time, 10))
-	r.AddCookie(&http.Cookie{Name: "acquia_solr_nonce", Value: nonce})
-	logger.Print("nonce: " + nonce)
+	r.AddCookie(&http.Cookie{Name: "acquia_solr_nonce", Value: authHeaders["acquia_solr_nonce"]})
 	r.AddCookie(&http.Cookie{Name: "acquia_solr_hmac", Value: hash})
-	logger.Print("hash: " + hash)
 
 	return nil
 
@@ -219,16 +207,8 @@ func (v *SearchSigner) GetIdentificationRegex() *regexp.Regexp {
 	return v.IdRegex
 }
 
-func getNonce() string {
-	//"github.com/dchest/uniuri"
-	//var char_list = []byte(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}")
-	//TODO: base64 encode before returning
-	//return NewLenChars(24, char_list)
-	return "ABCDEFGHIJKLMNOPQRSTUVWX"
-}
-
-func generateSignature(content string, request_time int64, secret string) string {
-	data := strconv.FormatInt(request_time, 10) + getNonce() + content
+func generateSignature(content string, request_time int64, secret string, nonce string) string {
+	data := strconv.FormatInt(request_time, 10) + nonce + content
 	key := []byte(secret)
 	h := hmac.New(sha1.New, key)
 	h.Write([]byte(data))

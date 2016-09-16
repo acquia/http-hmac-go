@@ -37,7 +37,7 @@ func (v *SearchResponseSigner) SignResponse(req *http.Request, rw *signers.Signa
 		return "", signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Nonce must be present in authentication headers.")
 	}
 
-	b := v.CreateSignable(rw.Body.String(), nonce)
+	b := v.CreateSignable(rw.Body.String(), nonce.Value)
 	h := hmac.New(sha1.New, []byte(secret))
 	h.Write([]byte(b))
 	hmac_string := hex.EncodeToString(h.Sum(nil))

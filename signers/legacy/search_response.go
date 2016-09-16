@@ -33,11 +33,11 @@ func (v *SearchResponseSigner) SignResponse(req *http.Request, rw *signers.Signa
 
 	nonce, err := req.Cookie("acquia_solr_nonce")
 	if err != nil {
-		logger.Print("Error retrieving:", field_name)
+		logger.Print("Error retrieving nonce.")
 		return "", signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Nonce must be present in authentication headers.")
 	}
 
-	b := v.CreateSignable(rw.Body.String(), auth_headers["acquia_solr_nonce"])
+	b := v.CreateSignable(rw.Body.String(), nonce)
 	h := hmac.New(sha1.New, []byte(secret))
 	h.Write([]byte(b))
 	hmac_string := hex.EncodeToString(h.Sum(nil))

@@ -169,13 +169,16 @@ func (v *SearchSigner) Version() int {
 }
 
 func (v *SearchSigner) HashBody(r *http.Request) (string, *signers.AuthenticationError) {
+	panic("Function HashBody is not implemented")
 	return "", nil
 }
 
 func (v *SearchSigner) GetIdentificationRegex() *regexp.Regexp {
+	panic("Function GetIdentificationRegex is not implemented")
 	return v.IdRegex
 }
 
 func (v *SearchSigner) GenerateAuthorization(r *http.Request, authHeaders map[string]string, signature string) (string, *signers.AuthenticationError) {
+	panic("Function GenerateAuthorization is not implemented")
 	return "", nil
 }

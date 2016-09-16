@@ -30,23 +30,10 @@ func (v *SearchResponseSigner) CreateSignable(body string, nonce string) []byte 
 }
 
 func (v *SearchResponseSigner) SignResponse(req *http.Request, rw *signers.SignableResponseWriter, secret string) (string, *signers.AuthenticationError) {
-	auth_headers := map[string]string{}
-	auth_fields := []string{
-		"acquia_solr_time",
-		"acquia_solr_nonce",
-		"acquia_solr_hmac",
-	}
 
-	for _, field_name := range auth_fields {
-		auth_cookie, err := req.Cookie(field_name)
-		if err != nil {
-			logger.Print("Error retrieving:", field_name)
-		} else {
-			auth_headers[field_name] = auth_cookie.Value
-		}
-	}
-
-	if _, ok := auth_headers["acquia_solr_nonce"]; !ok {
+	nonce, err := req.Cookie("acquia_solr_nonce")
+	if err != nil {
+		logger.Print("Error retrieving:", field_name)
 		return "", signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Nonce must be present in authentication headers.")
 	}
 

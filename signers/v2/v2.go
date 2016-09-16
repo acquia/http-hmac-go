@@ -105,12 +105,6 @@ func (v *V2Signer) CreateSignable(req *http.Request, authHeaders map[string]stri
 	// The (lowercase) hostname, matching the HTTP "Host" request header field
 	// (including any port number).
 	b.WriteString(req.Host)
-
-	// If behind an ELB/Proxy, the port may not be included in the host field
-	if req.Header.Get("X-Forwarded-Port") != "" {
-		b.WriteString(":")
-		b.WriteString(req.Header.Get("X-Forwarded-Port"))
-	}
 	b.WriteString("\n")
 
 	// The HTTP request path with leading slash, e.g. /resource/11

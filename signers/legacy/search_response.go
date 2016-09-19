@@ -3,7 +3,8 @@ package legacy
 import (
 	"bytes"
 	"crypto/hmac"
-	"encoding/base64"
+	"crypto/sha1"
+	"encoding/hex"
 	"github.com/acquia/http-hmac-go/signers"
 	"hash"
 	"net/http"
@@ -21,33 +22,26 @@ func NewSearchResponseSigner(digest func() hash.Hash) *SearchResponseSigner {
 	}
 }
 
-func (v *SearchResponseSigner) CreateSignable(req *http.Request, authHeaders map[string]string, rw *signers.SignableResponseWriter) []byte {
+func (v *SearchResponseSigner) CreateSignable(body string, nonce string) []byte {
 	var b bytes.Buffer
-	b.WriteString(authHeaders["nonce"])
-	b.WriteString("\n")
-	b.WriteString(req.Header.Get("X-Authorization-Timestamp"))
-	b.WriteString("\n")
-	b.WriteString(rw.Body.String())
+	b.WriteString(nonce)
+	b.WriteString(body)
 	return b.Bytes()
 }
 
 func (v *SearchResponseSigner) SignResponse(req *http.Request, rw *signers.SignableResponseWriter, secret string) (string, *signers.AuthenticationError) {
-	authHeaders := ParseAuthHeadersSearch(req)
-	if _, ok := authHeaders["nonce"]; !ok {
+
+	nonce, err := req.Cookie("acquia_solr_nonce")
+	if err != nil {
+		logger.Print("Error retrieving nonce.")
 		return "", signers.Errorf(403, signers.ErrorTypeInvalidAuthHeader, "Nonce must be present in authentication headers.")
 	}
-	if req.Header.Get("X-Authorization-Timestamp") == "" {
-		return "", signers.Errorf(403, signers.ErrorTypeMissingRequiredHeader, "Authorization timestamp for request is required.")
-	}
-	// First version of Acquia Auth Proxy for Dice mistakenly switched the order
-	// of the hmac signing function.
-	// Calculate message Hash Legacy
-	// It also did not decode the secret key from base64.
-	b := v.CreateSignable(req, authHeaders, rw)
-	h := hmac.New(v.Digest, b)
-	h.Write([]byte(secret))
-	hsm := h.Sum(nil)
-	return base64.StdEncoding.EncodeToString(hsm), nil
+
+	b := v.CreateSignable(rw.Body.String(), nonce.Value)
+	h := hmac.New(sha1.New, []byte(secret))
+	h.Write([]byte(b))
+	hmac_string := hex.EncodeToString(h.Sum(nil))
+	return hmac_string, nil
 }
 
 func (v *SearchResponseSigner) SignResponseDirect(req *http.Request, rw *signers.SignableResponseWriter, secret string) *signers.AuthenticationError {
@@ -55,7 +49,7 @@ func (v *SearchResponseSigner) SignResponseDirect(req *http.Request, rw *signers
 	if err != nil {
 		return err
 	}
-	rw.Header().Set("X-Server-Authorization-HMAC-SHA256", rsig)
+	rw.Header().Set("pragma", "hmac_digest=" + rsig + ";")
 	return nil
 }
 

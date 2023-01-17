@@ -5,3 +5,5 @@ go:
   - 1.4
   - tip
 
+script:
+  - ./run_all_tests.sh

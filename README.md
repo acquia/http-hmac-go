@@ -5,3 +5,9 @@
 
 An implementation of the [HTTP HMAC Spec](https://github.com/acquia/http-hmac-spec)
 in [Golang](https://golang.org/).
+
+## Run tests
+To run the test cases use the make command `make test`
+
+## Run code coverage
+To get the code coverage use the make command `make coverage`

@@ -1,12 +1,16 @@
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    pull-request-branch-name:
-      separator: "-"
-    groups:
-      gomod-dependencies:
-        patterns:
-          - "*"
+- package-ecosystem: gomod
+  directory: /
+  schedule:
+    interval: weekly
+  pull-request-branch-name:
+    separator: "-"
+  groups:
+    gomod-dependencies:
+      patterns:
+      - "*"
+  ignore:
+  - update-types:
+    - version-update:semver-major
+  - dependency-name: "*"
